@@ -11,7 +11,7 @@ TRAIN := train_ffdnet.py
 TRAIN_FLAGS := --wiener --batch_size 128 --val_batch_size 128 --log_dir logs --gray
 # ======= TEST  =========
 TEST := test_ffdnet.py
-TEST_FLAGS := --input images/test.jpg --weight_path weigths/best.pth --no_gpu
+TEST_FLAGS := --input images/lena_std.tif --weight_path weigths/best.pth --no_gpu --output images
 # ======= DOC   =========
 AUTHORS := --author "Matias Tassano, Simone Alghisi, Samuele Bortolotti, Massimo Rizzoli" 
 VERSION :=-r 0.1 

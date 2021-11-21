@@ -31,8 +31,6 @@ This source code provides a PyTorch implementation of FFDNet image denoising, as
 
 `https://arxiv.org/abs/1710.04026 <https://arxiv.org/abs/1710.04026>`_.
 
-The code was later 
-
 USER GUIDE
 ----------
 
