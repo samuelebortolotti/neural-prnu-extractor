@@ -1,0 +1,17 @@
+#####=== Python ===#####
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Sphinx documentation
+docs/
+
+# python venv
+venv
+
+# logs
+logs
