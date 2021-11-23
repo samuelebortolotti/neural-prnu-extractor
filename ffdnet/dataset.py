@@ -152,22 +152,15 @@ def prepare_data(data_path, \
 class Dataset(udata.Dataset):
   r"""Implements torch.utils.data.Dataset
   """
-  def __init__(self, train=True, gray_mode=False, shuffle=False):
+  def __init__(self, dbf, train=True, gray_mode=False, shuffle=False):
     super(Dataset, self).__init__()
     self.train = train
     self.gray_mode = gray_mode
-    if not self.gray_mode:
-      self.traindbf = 'data/h5py/train_rgb_train_final.h5'
-      self.valdbf = 'data/SIV/h5py/train_rgb_test_final.h5'
-    else:
-      self.traindbf = 'data/SIV/h5py/train_rgb_debug_180.h5'
-      self.valdbf = 'data/SIV/h5py/val_rgb_debug_180.h5'
+    self.dbf = dbf
 
-    if self.train:
-      h5f = h5py.File(self.traindbf, 'r')
-    else:
-      h5f = h5py.File(self.valdbf, 'r')
+    h5f = h5py.File(self.dbf, 'r')
     self.keys = list(h5f.keys())
+
     if shuffle:
       random.shuffle(self.keys)
     h5f.close()
@@ -176,10 +169,7 @@ class Dataset(udata.Dataset):
     return len(self.keys)
 
   def __getitem__(self, index):
-    if self.train:
-      h5f = h5py.File(self.traindbf, 'r')
-    else:
-      h5f = h5py.File(self.valdbf, 'r')
+    h5f = h5py.File(self.dbf, 'r')
     key = self.keys[index]
     data = np.array(h5f[key])
     h5f.close()

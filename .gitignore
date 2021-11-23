@@ -12,6 +12,7 @@ docs/
 
 # python venv
 venv
+.python-version
 
 # logs
 logs

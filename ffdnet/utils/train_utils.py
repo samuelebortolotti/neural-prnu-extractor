@@ -33,8 +33,8 @@ def weights_init_kaiming(lyr):
 def load_dataset_and_dataloader(args):
   print('> Loading dataset ...')
 
-  dataset_train = Dataset(train=True, gray_mode=args.gray, shuffle=True)
-  dataset_val = Dataset(train=False, gray_mode=args.gray, shuffle=False)
+  dataset_train = Dataset(dbf=args.traindbf, train=True, gray_mode=args.gray, shuffle=True)
+  dataset_val = Dataset(dbf=args.valdbf, train=False, gray_mode=args.gray, shuffle=False)
   loader_train = DataLoader(dataset=dataset_train, num_workers=2, batch_size=args.batch_size, shuffle=True)
   loader_val = DataLoader(dataset=dataset_val, num_workers=2, batch_size=args.val_batch_size, shuffle=False)
 

@@ -13,6 +13,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 import argparse
 import sys
 from ffdnet.train import train
+from pathlib import Path
 
 def train_parsing():
   """
@@ -53,24 +54,22 @@ def train_parsing():
   parser.add_argument("--wiener", action='store_true',\
             help="Apply wiener filter to extract noise from dataset")
   parser.add_argument('--val_batch_size', type=int, default=128, 	\
-           help='Validation batch size')
+           	help='Validation batch size')
+  parser.add_argument('--traindbf', type=Path, default='train_rgb.h5',
+						help='h5py file containing the images for training the net')
+  parser.add_argument('--valdbf', type=Path, default='val_rgb.h5',
+						help='h5py file containing the images for validating the net')
   argspar = parser.parse_args()
-  ## Normalize noise between [0, 1]
+	# Normalize noise between [0, 1]
   argspar.val_noiseL /= 255.
   argspar.noiseIntL[0] /= 255.
   argspar.noiseIntL[1] /= 255.
-  ## wiener
-  #argspar.wiener = True
-  ## Batch size
-  argspar.batch_size = 128
-  argspar.val_batch_size = 128
-  ## resume training
-  # argspar.resume_training = True
-  ## log dir, has changed
-  #argspar.log_dir = '/content/drive/MyDrive/SIV/prova'
-  ## gray
-  #argspar.gray = True
   
+  if not (argspar.traindbf).exists():
+    parser.exit("The file {} for training does not exists".format(argspar.traindbf))
+
+  if not (argspar.valdbf).exists():
+    parser.exit("The file {} for training does not exists".format(argspar.valdbf))  
 
   print("\n### Training FFDNet model ###")
   print("> Parameters:")
