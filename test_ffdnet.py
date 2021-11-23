@@ -97,8 +97,15 @@ def test_ffdnet(**args):
   denoised_ffdnet = image[:, :, :]
   denoised_ffdnet[:, : , 1] = imgn - prediction.detach()
 
-  matplotlib.image.imsave('{}/wiener_denoised.jpg'.format(args['output']), denoised_wiener)
-  matplotlib.image.imsave('{}/prediction_denoised.jpg'.format(args['output']), denoised_ffdnet)
+  if args['gray']:
+    denoised_wiener = cv2.cvtColor(denoised_wiener, cv2.COLOR_BGR2GRAY)
+    denoised_ffdnet = cv2.cvtColor(denoised_ffdnet, cv2.COLOR_BGR2GRAY)
+    cmap = 'gray'
+  else:
+    cmap = None
+
+  matplotlib.image.imsave('{}/wiener_denoised.jpg'.format(args['output']), denoised_wiener, cmap=cmap)
+  matplotlib.image.imsave('{}/prediction_denoised.jpg'.format(args['output']), denoised_ffdnet, cmap=cmap)
 
   print('Wiener filter noise: ', np.min(np.asarray(noise.detach())), np.max(np.asarray(noise.detach())))
   print('FFDNET prediction noise', np.min(np.asarray(prediction.detach())), np.max(np.asarray(prediction.detach())))
@@ -129,6 +136,8 @@ if __name__ == "__main__":
             help="run model on CPU")
   parser.add_argument("--output", type=str, default="", \
             help='path to the output folder', required=True)
+  parser.add_argument("--gray", action='store_true', \
+            help='test on gray images')
   argspar = parser.parse_args()
   # Normalize noises ot [0, 1]
   argspar.noise_sigma /= 255.

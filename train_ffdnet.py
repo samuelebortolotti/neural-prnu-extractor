@@ -12,6 +12,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import argparse
 import sys
+import torch
 from ffdnet.train import train
 from pathlib import Path
 
@@ -59,6 +60,8 @@ def train_parsing():
 						help='h5py file containing the images for training the net')
   parser.add_argument('--valdbf', type=Path, default='val_rgb.h5',
 						help='h5py file containing the images for validating the net')
+  parser.add_argument('--gpu_fraction', type=float, default=0.8, 	\
+					  help='Set the gpu to use only a fraction of the total memory')
   argspar = parser.parse_args()
 	# Normalize noise between [0, 1]
   argspar.val_noiseL /= 255.
@@ -70,6 +73,8 @@ def train_parsing():
 
   if not (argspar.valdbf).exists():
     parser.exit("The file {} for training does not exists".format(argspar.valdbf))  
+
+  torch.cuda.set_per_process_memory_fraction(argspar.gpu_fraction)
 
   print("\n### Training FFDNet model ###")
   print("> Parameters:")
