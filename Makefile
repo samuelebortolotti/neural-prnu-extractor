@@ -8,7 +8,7 @@ PYFLAGS :=
 PIP := pip
 # ======= TRAIN =========
 TRAIN := train_ffdnet.py
-TRAIN_FLAGS := --wiener --batch_size 128 --val_batch_size 128 --log_dir logs --gray --gpu_fraction 0.3
+TRAIN_FLAGS := --wiener --batch_size 128 --val_batch_size 128 --gray --gpu_fraction 0.3
 # ======= TEST  =========
 TEST := test_ffdnet.py
 TEST_FLAGS := --input images/lena.jpg --weight_path weigths/best.pth --no_gpu --output images --gray

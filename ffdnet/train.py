@@ -32,15 +32,15 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 def train(args):
+  torch.cuda.set_per_process_memory_fraction(args.gpu_fraction, 0)
 	# Performs the main training loop
 
 	# Load dataset
   datasets, dataloaders = load_dataset_and_dataloader(args)
 
 	# Init loggers
-  if not os.path.exists(args.log_dir):
-    os.makedirs(args.log_dir)
-  writer = SummaryWriter(args.log_dir)
+  (args.experiment_name).mkdir(parents=True, exist_ok=True)
+  writer = SummaryWriter(args.experiment_name)
   logger = init_logger(args)
 
   # Create model

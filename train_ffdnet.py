@@ -12,9 +12,9 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import argparse
 import sys
-import torch
 from ffdnet.train import train
 from pathlib import Path
+from datetime import datetime
 
 def train_parsing():
   """
@@ -27,14 +27,13 @@ def train_parsing():
   parser = argparse.ArgumentParser(description="FFDNet")
   parser.add_argument("--gray", action='store_true',\
             help='train grayscale image denoising instead of RGB')
-
-  parser.add_argument("--log_dir", type=str, default="logs", \
-           help='path of log files')
-  #Training parameters
+  parser.add_argument("--experiment_name", type=Path, \
+            default=datetime.now().strftime("%Y_%m_%d_%H_%M_%S"), \
+            help='path of log directory inside of the folder experiments')
   parser.add_argument("--batch_size", type=int, default=128, 	\
-           help="Training batch size")
+            help="Training batch size")
   parser.add_argument("--epochs", "--e", type=int, default=80, \
-           help="Number of total training epochs")
+            help="Number of total training epochs")
   parser.add_argument("--resume_training", "--r", action='store_true',\
             help="resume training from a previous checkpoint")
   parser.add_argument("--milestone", nargs=2, type=int, default=[50, 60], \
@@ -49,32 +48,34 @@ def train_parsing():
   parser.add_argument("--save_every_epochs", type=int, default=5,\
             help="Number of training epochs to save state")
   parser.add_argument("--noiseIntL", nargs=2, type=int, default=[0, 75], \
-           help="Noise training interval")
+            help="Noise training interval")
   parser.add_argument("--val_noiseL", type=float, default=25, \
             help='noise level used on validation set')
   parser.add_argument("--wiener", action='store_true',\
             help="Apply wiener filter to extract noise from dataset")
   parser.add_argument('--val_batch_size', type=int, default=128, 	\
            	help='Validation batch size')
-  parser.add_argument('--traindbf', type=Path, default='train_rgb.h5',
+  parser.add_argument('--traindbf', type=Path, default='datasets/train_rgb.h5',
 						help='h5py file containing the images for training the net')
-  parser.add_argument('--valdbf', type=Path, default='val_rgb.h5',
+  parser.add_argument('--valdbf', type=Path, default='datasets/val_rgb.h5',
 						help='h5py file containing the images for validating the net')
-  parser.add_argument('--gpu_fraction', type=float, default=0.8, 	\
+  parser.add_argument('--gpu_fraction', type=float, default=1, 	\
 					  help='Set the gpu to use only a fraction of the total memory')
   argspar = parser.parse_args()
+
 	# Normalize noise between [0, 1]
   argspar.val_noiseL /= 255.
   argspar.noiseIntL[0] /= 255.
   argspar.noiseIntL[1] /= 255.
   
+  # Add experiment_name to experiments folder
+  argspar.experiment_name = Path("experiments") / argspar.experiment_name
+  
   if not (argspar.traindbf).exists():
     parser.exit("The file {} for training does not exists".format(argspar.traindbf))
 
   if not (argspar.valdbf).exists():
-    parser.exit("The file {} for training does not exists".format(argspar.valdbf))  
-
-  torch.cuda.set_per_process_memory_fraction(argspar.gpu_fraction)
+    parser.exit("The file {} for training does not exists".format(argspar.valdbf))
 
   print("\n### Training FFDNet model ###")
   print("> Parameters:")
