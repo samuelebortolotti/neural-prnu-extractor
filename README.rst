@@ -56,6 +56,10 @@ Usage
 
 .. code-block:: shell
 
+   pip install --upgrade pip
+
+.. code-block:: shell
+
    make env
 
 .. code-block:: shell

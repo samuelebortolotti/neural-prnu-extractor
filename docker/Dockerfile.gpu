@@ -1,8 +1,10 @@
-FROM nvidia/cuda:11.4.2-runtime-ubuntu18.04
+FROM nvidia/cuda:11.3.0-runtime-ubuntu18.04
 LABEL mantainer="Alghisi Simone, Bortolotti Samuele, Rizzoli Massimo"
 LABEL repository="ffdnet-photo-response-non-uniformity"
 
 RUN echo -e "\n**********************\nGPU NVIDIA info\n***************\n" && \
+echo -e "\n**************************\nNVIDIA SMI\n******************\n" && \
+nvidia-smi && \
 cat /proc/driver/nvidia/gpus/0000\:02\:00.0/information && \
 echo -e "\n**************************\nCUDA Version\n******************\n" && \
 nvcc -V && \
