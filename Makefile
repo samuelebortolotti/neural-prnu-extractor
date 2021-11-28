@@ -7,10 +7,10 @@ PYTHON := python3
 PYFLAGS := 
 PIP := pip
 # ======= TRAIN =========
-TRAIN := train_ffdnet.py
-TRAIN_FLAGS := --wiener --gray --traindbf datasets/train_gray.h5 --valdbf datasets/val_gray.h5 --gpu_fraction 0.3
+TRAIN := -m ffdnet train
+TRAIN_FLAGS := --filter wiener --gray --traindbf datasets/train_gray.h5 --valdbf datasets/val_gray.h5 --gpu_fraction 0.3
 # ======= TEST  =========
-TEST := test_ffdnet.py
+TEST := -m ffdnet test
 TEST_FLAGS := --input images/lena.jpg --weight_path weigths/best.pth --no_gpu --output images --gray
 # ======= DOC   =========
 AUTHORS := --author "Matias Tassano, Simone Alghisi, Samuele Bortolotti, Massimo Rizzoli" 

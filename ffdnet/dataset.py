@@ -45,12 +45,13 @@ def img_to_patches(img, win, stride=1):
       k = k + 1
   return res.reshape([endc, win, win, total_pat_num])
 
-def prepare_data(data_path, \
-         val_data_path, \
-         patch_size, \
-         stride, \
-         total_patches, \
-         max_num_patches=None, \
+def prepare_data(data_path,
+         val_data_path,
+         patch_size,
+         stride,
+         train_file,
+         val_file,
+         total_patches,
          gray_mode=False):
   r"""Builds the training and validations datasets by scanning the
   corresponding directories for images and extracting	patches from them.
@@ -73,52 +74,45 @@ def prepare_data(data_path, \
     files.extend(glob.glob(os.path.join(data_path, tp)))
   files.sort()
 
-  if gray_mode:
-    traindbf = 'data/SIV/h5py/train_gray_'+ data_path.split('/')[-1] +'.h5'
-    valdbf = 'data/SIV/h5py/val_gray.h5'
-  else:
-    traindbf = 'data/SIV/h5py/train_rgb_'+ data_path.split('/')[-1] +'.h5'
-    valdbf = 'data/SIV/h5py/val_rgb.h5'
+  traindbf = 'dataset/'+ train_file
+  valdbf = 'dataset/' + val_file
 
-  if max_num_patches is None:
-    max_num_patches = 10000000
-    print("\tMaximum number of patches not set")
-  else:
-    print("\tMaximum number of patches set to {}".format(max_num_patches))
   train_num = 0
   val_num = 0
-  train_patches = 0
   i = 0
   n_files = len(files)
   patches_per_file = total_patches//n_files
+  reminder = total_patches%n_files
   t_file = tqdm(total=n_files)
-  while i < len(files) and train_num < max_num_patches:
+  while i < len(files):
     with h5py.File(traindbf, 'a') as h5f:
-      for j in range(5):
-        if(i < len(files) and train_num < max_num_patches):
-          imgor = cv2.imread(files[i])
-          # h, w, c = img.shape
-          img = imgor
-          if not gray_mode:
-            # CxHxW RGB image
-            img = (cv2.cvtColor(img, cv2.COLOR_BGR2RGB)).transpose(2, 0, 1)
-          else:
-            # CxHxW grayscale image (C=1)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            img = np.expand_dims(img, 0)
-          img = normalize(img)
-          patches = img_to_patches(img, win=patch_size, stride=stride)
-          np.random.shuffle(patches)
-     
-          for nx in range(patches.shape[3]):
-            data = patches[:, :, :, nx] 
-            train_patches += len(data)
-            h5f.create_dataset(str(train_num), data=data)
-            train_num += 1
-            if nx-2 >= patches_per_file:
-              break
-          i += 1
-          t_file.update(1)
+      imgor = cv2.imread(files[i])
+      # h, w, c = img.shape
+      img = imgor
+      if not gray_mode:
+        # CxHxW RGB image
+        img = (cv2.cvtColor(img, cv2.COLOR_BGR2RGB)).transpose(2, 0, 1)
+      else:
+        # CxHxW grayscale image (C=1)
+        img = img[:, :, 1]
+        img = np.expand_dims(img, 0)
+      img = normalize(img)
+      patches = img_to_patches(img, win=patch_size, stride=stride)
+      np.random.shuffle(patches)
+      nx = 0
+      n_patches = patches.shape[3]
+      already_picked = False
+      while nx < n_patches and nx < patches_per_file:
+        data = patches[:, :, :, nx]
+        h5f.create_dataset(str(train_num), data=data)
+        train_num += 1
+        if reminder > 0 and not already_picked:
+          reminder -= 1
+          already_picked = True
+        else:
+          nx += 1
+      i += 1
+      t_file.update(1)
   t_file.close()
 
   # validation database

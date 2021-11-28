@@ -33,6 +33,7 @@ This source code provides a modified version of the "FFDNet image denoising, as 
 `FFDNet paper <https://arxiv.org/abs/1710.04026>`_.
 
 This version, unlike the original, concentrates on detecting the cameras' `PRNU <https://en.wikipedia.org/wiki/Photo_response_non-uniformity>`_.
+
 It includes the option of training the network using the `Wiener filter <https://en.wikipedia.org/wiki/Wiener_filter>`_ as a strategy for detecting and extracting noise from images, in addition to the original method provided in the paper.
 
 USER GUIDE
@@ -64,7 +65,8 @@ To facilitate the use of the application, a ``Makefile`` has been provided; to s
 ^^^^^^^^^
 
 For the development phase, the Makefile provides an automatic method to create a virtual environment.
-If you want to a virtual environment for the project you can run the following commands
+
+If you want to a virtual environment for the project you can run the following commands:
 
 .. code-block:: shell
 
@@ -128,21 +130,33 @@ Open the documentation
 2. Testing
 ^^^^^^^^^^
 
+You can learn more about the test function by calling the help of the test subparser
+
+.. code-block:: shell
+
+   python -m ffdnet test --help
+
 If you want to denoise an image using a one of the pretrained models
 found under the *models* folder you can execute
 
 .. code-block:: shell
 
-   python test_ffdnet.py \
+   python -m ffdnet test \
      --input input.png \
+     --weight_path weigths/wiener.pth \
+     --output images \
+     --gray
 
 To run the algorithm on CPU instead of GPU:
 
 .. code-block:: shell
 
-   python test_ffdnet.py \
+   python -m ffdnet test \
      --input input.png \
-     --no_gpu
+     --weight_path weigths/wiener.pth \
+     --no_gpu \
+     --output images \
+     --gray
 
 Or just change the flags value within the Makefile and run
 
@@ -185,7 +199,7 @@ Only training on GPU is supported.
 
 .. code-block:: shell
 
-   python train.py \
+   python -m ffdnet train \
      --batch_size 128 \
      --val_batch_size 128 \
      --epochs 80 \
@@ -194,7 +208,6 @@ Only training on GPU is supported.
      --gray
 
 **NOTES**
-
 
 * The training process can be monitored with TensorBoard as logs get saved
   in the *experiments/experiment_name* folder

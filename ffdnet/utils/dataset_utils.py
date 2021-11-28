@@ -4,8 +4,9 @@ import random
 from shutil import copyfile, move
 import h5py
 from tqdm import tqdm
+import numpy as np
 
-def split_dataset(dataset_folder: str, destination_folder: str, train_dim: float = 0.70):
+def split_dataset(dataset_folder: str, destination_folder: str, train_frac: float = 0.70):
   image_partition = {}
   if os.path.exists(dataset_folder):
     for image_path in Path(dataset_folder).iterdir():
@@ -29,7 +30,7 @@ def split_dataset(dataset_folder: str, destination_folder: str, train_dim: float
       for image_path_list in image_type_dict.values():
         random.shuffle(image_path_list)
         list_size = len(image_path_list) - 1
-        train_size = int(list_size*train_dim)
+        train_size = int(list_size*train_frac)
         for i, image_path in enumerate(image_path_list):
           print("Copying {}...".format(image_path))
           if i < train_size:
@@ -39,12 +40,12 @@ def split_dataset(dataset_folder: str, destination_folder: str, train_dim: float
             print("into {}...".format(destination_folder + '/test/' + image_path.split('/')[-1]))
             copyfile(image_path, destination_folder + '/test/' + image_path.split('/')[-1])
 
-def split_dataset_with_fixed_dimension(dataset_folder: str, destination_folder: str, train_dim: float = 0.70, total_train_size: int = 60, total_val_size: int = 30):
+def split_dataset_with_fixed_dimension(dataset_folder: str, destination_folder: str, train_frac: float = 0.70, total_train_size: int = None, total_val_size: int = None, copy=True):
   image_partition = {}
   total_images = 0
   img_per_model = {}
   if os.path.exists(dataset_folder):
-    for image_path in Path(dataset_folder).iterdir():
+    for image_path in tqdm(Path(dataset_folder).iterdir(), desc="Scanning through VISION dataset"):
       image_name = str(image_path).split('/')[-1]
       if image_name.split('.')[-1] in ['jpg']:
         name_splits = image_name.split('_')
@@ -68,31 +69,34 @@ def split_dataset_with_fixed_dimension(dataset_folder: str, destination_folder: 
       os.mkdir(destination_folder)
     if not os.path.exists(destination_folder + '/train'):
       os.mkdir(destination_folder + '/train')
-    if not os.path.exists(destination_folder + '/test'):
-      os.mkdir(destination_folder + '/test')
-    for camera_model, image_type_dict in image_partition.items():
-      for image_type, image_path_list in image_type_dict.items():
+    if not os.path.exists(destination_folder + '/val'):
+      os.mkdir(destination_folder + '/val')
+    for camera_model, image_type_dict in tqdm(image_partition.items(), desc="Loading camera models"):
+      for image_type, image_path_list in tqdm(image_type_dict.items(), desc="Loading ".format(camera_model)):
         random.shuffle(image_path_list)
         list_size = len(image_path_list) - 1
-        train_size = int(list_size*train_dim)
-        total_train_imgs_from_model = round(img_per_model[camera_model][image_type]*total_train_size)
-        total_val_imgs_from_model = round(img_per_model[camera_model][image_type]*total_val_size)
+        train_size = int(list_size*train_frac)
+        total_train_imgs_from_model = None
+        if total_train_size is not None:
+          total_train_imgs_from_model = round(img_per_model[camera_model][image_type]*total_train_size)
+        total_val_imgs_from_model = None
+        if total_val_size is not None:
+          total_val_imgs_from_model = round(img_per_model[camera_model][image_type]*total_val_size)
         train_list = image_path_list[:train_size]
         val_list = image_path_list[train_size:]
-        for i, image_path in enumerate(train_list):
-          print("Copying {}...".format(image_path))
-          if i >= total_train_imgs_from_model:
-            break
-          else:
-            print("into {}...".format(destination_folder + '/train/' + image_path.split('/')[-1]))
-            copyfile(image_path, destination_folder + '/train/' + image_path.split('/')[-1])
-        for i, image_path in enumerate(val_list):
-          print("Copying {}...".format(image_path))
-          if i >= total_val_imgs_from_model:
-            break
-          else:
-            print("into {}...".format(destination_folder + '/test/' + image_path.split('/')[-1]))
-            copyfile(image_path, destination_folder + '/test/' + image_path.split('/')[-1])
+        total_imgs_from_model = {
+          'train': total_train_imgs_from_model, 
+          'val': total_val_imgs_from_model
+        }
+        for phase in ['train', 'val']:
+          for i, image_path in tqdm(enumerate(train_list), desc="Working with {} for {}".format(image_type, phase)):
+            if total_imgs_from_model[phase] is not None and i >= total_imgs_from_model[phase]:
+              break
+            else:
+              if copy:
+                copyfile(image_path, destination_folder + '/' + phase + '/' + image_path.split('/')[-1])
+              else:
+                move(image_path, destination_folder + '/' + phase + '/' + image_path.split('/')[-1])
 
 def split_training_into_subfolder(n_sample: int, data_folder: str, destination_folder):
   if os.path.exists(data_folder):
@@ -147,3 +151,12 @@ def take_first_n_from_h5py(src: str, dst: str, n: int = None):
       break
   h5f_src.close()
   h5f_dst.close()
+
+def save_only_green_channel(src, dst):
+  if os.path.exists(src):
+    with h5py.File(src) as h5_src:
+      with h5py.File(dst, 'a') as h5_dst:
+        for key in tqdm(h5_src.keys()):
+          img = h5_src[key]
+          green_channel = img[1, :, :]
+          h5_dst.create_dataset(name=key, data=np.expand_dims(green_channel, 0))

@@ -10,20 +10,24 @@ version 3 of the License, or (at your option) any later
 version. You should have received a copy of this license along
 this program. If not, see <http://www.gnu.org/licenses/>.
 """
-import argparse
 from ffdnet.dataset import prepare_data
 
-if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description=\
-                  "Building the training patch database")
+
+def configure_subparsers(subparsers):
+  r"""Configure a new subparser for preparing the patches for FFDNet.
+  
+  Args:
+    subparsers: subparser
+  """
+  parser = subparsers.add_parser('prepare_patches', help='Prepare patches')
   parser.add_argument("--gray", action='store_true',\
             help='prepare grayscale database instead of RGB')
 
   # Preprocessing parameters
   parser.add_argument("--patch_size", "--p", type=int, default=44, \
-           help="Patch size")
+            help="Patch size")
   parser.add_argument("--stride", "--s", type=int, default=20, \
-           help="Size of stride")
+            help="Size of stride")
   parser.add_argument("--max_number_patches", "--m", type=int, default=None, \
             help="Maximum number of patches")
   parser.add_argument("--aug_times", "--a", type=int, default=1, \
@@ -33,8 +37,16 @@ if __name__ == "__main__":
            help='path of trainset')
   parser.add_argument("--valset_dir", type=str, default=None, \
              help='path of validation set')
-  args = parser.parse_args()
+  parser.set_defaults(func=main)
 
+def main(args):
+  r"""Checks the command line arguments and then runs prepare data.
+
+  Args:
+    args: command line arguments
+  """
+
+  # default dataset
   if args.gray:
     if args.trainset_dir is None:
       args.trainset_dir = 'data/gray/train'

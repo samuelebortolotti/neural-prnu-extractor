@@ -2,13 +2,22 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
+from enum import Enum
 from torch.utils.data import DataLoader
 from scipy.signal.signaltools import wiener
-from skimage.restoration import estimate_sigma
+from skimage.restoration import estimate_sigma, denoise_wavelet
 from ffdnet.dataset import Dataset
 from ffdnet.models import FFDNet
 from torch.autograd import Variable
 import os
+
+class Estimator(Enum):
+  r"""Noise estimator class
+  """
+  # Wiener enum value
+  WIENER = 0
+  # Denoise wavelet value
+  WAVELET = 1
 
 def weights_init_kaiming(lyr):
   r"""Initializes weights of the model according to the "He" initialization
@@ -154,7 +163,9 @@ def resume_training(args, model, optimizer):
 def create_input_variables(args, data):
   r"""Creates the FFDNet input variables according the denoising method specified:
     - wiener:
-      the original image is denoised by appling the Wiener filter on the green channel (if the image is RGB) 
+      the original image is denoised by appling the Wiener filter
+    - wavelet:
+      the original image is denoised by appling either Bayesian Shrink or Visu Shrink according to the specified parameter
     - if such flag is not specified, by default the approach proposed in "FFDNet: Toward a Fast and Flexible Solution for CNN based Image Denoising" is applied
   
   Args:
@@ -167,17 +178,26 @@ def create_input_variables(args, data):
     noise: noise patterns
     stdn_var: noise standard deviations (noise treated as AWGN)
   """
-  if args.wiener: 
+
+  if args.filter == 'wiener':
     imgn = data
-    img, stdn = estimate_noise(imgn, (5, 5))
+    img, stdn = estimate_noise(imgn, wiener_kernel_size = (5, 5))
     img = torch.as_tensor(img, dtype=torch.float)
     stdn = torch.FloatTensor(stdn)
     stdn = Variable(stdn.cuda())
     img = Variable(img.cuda())
     imgn = Variable(imgn.cuda())
     noise = torch.clamp(imgn - img, 0., 1.)
-    noise = Variable(noise.cuda())
-    stdn_var = Variable(torch.cuda.FloatTensor(stdn))
+  elif args.filter == 'wavelet':
+    imgn = data
+    img, stdn = estimate_noise(imgn, method = Estimator.WAVELET, \
+      convert2ycbcr = args.wavelet_convert2ycbcr, wavelet_method = args.wavelet_method)
+    img = torch.as_tensor(img, dtype=torch.float)
+    stdn = torch.FloatTensor(stdn)
+    stdn = Variable(stdn.cuda())
+    img = Variable(img.cuda())
+    imgn = Variable(imgn.cuda())
+    noise = torch.clamp(imgn - img, 0., 1.)
   else:
     img = data
     noise = torch.zeros(img.size())
@@ -188,9 +208,10 @@ def create_input_variables(args, data):
     imgn = img + noise
     img = Variable(img.cuda())
     imgn = Variable(imgn.cuda())
-    noise = Variable(noise.cuda())
-    stdn_var = Variable(torch.cuda.FloatTensor(stdn))
   
+  stdn_var = Variable(torch.cuda.FloatTensor(stdn))
+  noise = Variable(noise.cuda())
+
   return img, imgn, stdn_var, noise
 
 def compute_loss(criterion, pred, noise, imgn):
@@ -219,17 +240,32 @@ def get_lr(optimizer):
   for param_group in optimizer.param_groups:
     return param_group['lr']
 
-def estimate_noise(image_list, wiener_kernel_size):
-  r"""Estimate noise using the wiener filter (if the image is RGB then the filter is performed on the green channel only)
+
+def estimate_noise(image_list, method = Estimator.WIENER, wiener_kernel_size=(5, 5), \
+  convert2ycbcr=False, wavelet_method='BayesShrink'):
+  r"""Estimate noise using the wiener filter or the Wavelet denoising (Bayesian Shrink or VisuShrink) according to what has been specified
 
   Args:
     image_list: list of noisy images
-    wiener_kernel_size: tuple which depicts the wiener kernel size
+    method: Noise estimator [Estimator.WIENER or Estimator.WAVELET]
+    wiener_kernel_size: Kernel size of the Wiener filter [default (5, 5)]
+    convert2ycbcr: If True and the image is RGB, do the wavelet denoising in the YCbCr colorspace instead of the RGB color space [default False]
+    wavelet_method: Method for Wavelet denoising, either 'BayesShrink' or 'VisuShrink'
 
   Returns:
     (filtered_images, noises): tuple of filtered images and associated noise
   """
   # image should be an array of arrays [0 - 1] integer value already in grayscale
+
+  wavelet_options = ['BayesShrink', 'VisuShrink']
+
+  if not isinstance(method, Estimator):
+    assert False, 'Unknown noise estimator, please specify one of those listed in {}'.format([i for i in Estimator.__dict__.keys() if i[:1] != '_'])
+
+  if method == Estimator.WAVELET and wavelet_method not in wavelet_options:
+    assert False, 'Unknown wavelet method, please specify one of those listed in {}'.format(wavelet_options)
+
+
   if isinstance(image_list, torch.Tensor) or isinstance(image_list, (np.ndarray, np.generic)):
     n_images = image_list.shape[0]
     c = image_list.shape[1]
@@ -244,12 +280,20 @@ def estimate_noise(image_list, wiener_kernel_size):
   else:
     assert False, 'not a list/tensor/ndarray'
 
+  multichannel = False
+  if h > 1:
+    multichannel = True
+
   filtered_images = np.ndarray((n_images, c, w, h))
   noises = np.ndarray((n_images))
 
   for i in range(n_images):
     image = np.asarray(image_list[i]).squeeze()
-    filtered = wiener(image, wiener_kernel_size)
+    if method == Estimator.WIENER:
+      filtered = wiener(image, wiener_kernel_size)
+    elif method == Estimator.WAVELET:
+      filtered = denoise_wavelet(image, multichannel=multichannel, \
+        convert2ycbcr=convert2ycbcr, rescale_sigma=True, method = wavelet_method)
 
     array_sum = np.sum(filtered)
     array_has_nan = np.isnan(array_sum)

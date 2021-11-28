@@ -10,21 +10,18 @@ version 3 of the License, or (at your option) any later
 version. You should have received a copy of this license along
 this program. If not, see <http://www.gnu.org/licenses/>.
 """
-import argparse
-import sys
+from typing import DefaultDict
 from ffdnet.train import train
 from pathlib import Path
 from datetime import datetime
 
-def train_parsing():
+def configure_subparsers(subparsers):
+  r"""Configure a new subparser for training FFDNet.
+  
+  Args:
+    subparsers: subparser
   """
-	Function used to train the FFDNet neural network.
-	
-	After collecting some command line argument through the ArgumentParser
-	it calls the `train`  function in the `ffdnet.train.py` function
-
-  """
-  parser = argparse.ArgumentParser(description="FFDNet")
+  parser = subparsers.add_parser('train', help='Train the FFDNet')
   parser.add_argument("--gray", "-g", action="store_true",\
             help="train grayscale image denoising instead of RGB [default: False]")
   parser.add_argument("--experiment_name", "-en", type=Path, \
@@ -51,39 +48,43 @@ def train_parsing():
             help="Noise training interval [default: 0, 75]")
   parser.add_argument("--val_noiseL", type=float, default=25, \
             help="noise level used on validation set [default: 25]")
-  parser.add_argument("--wiener", "-w", action="store_true",\
-            help="Apply wiener filter to extract noise from dataset [default: False]")
+  parser.add_argument("--filter", "-f", choices=['default', 'wiener', 'wavelet'], default='default',\
+            help="Apply wiener/wavelet filter or default (AWGN artifical noise) to extract noise from dataset [default: default]")
   parser.add_argument("--traindbf", "-tf", type=Path, default="datasets/train_rgb.h5",
 						help="h5py file containing the images for training the net [default: 'datasets/train_rgb.h5']")
   parser.add_argument("--valdbf", "-vf", type=Path, default="datasets/val_rgb.h5",
 						help="h5py file containing the images for validating the net [default: 'datasets/val_rgb.h5']")
   parser.add_argument("--gpu_fraction", "-gf", type=float, default=1.0, 	\
 					  help="Set the gpu to use only a fraction of the total memory [default: 1.0]")
-  argspar = parser.parse_args()
+  parser.add_argument("--wavelet_convert2ycbcr", action="store_true", \
+					  help="Apply the conversion from RGB to ycbcr will be if the wavelet denoising method is selected [default: False]")
+  parser.add_argument("--wavelet_method", "-wavemet", type=str, default='BayesShrink', 	\
+					  help="Apply the BayesShrink or VisuShrink method if the wavelet denoising method is selected [default: BayesShrink]")
+  parser.set_defaults(func=main)
 
+def main(args):
+  r"""Checks the arguments passed to the train function and calls it.
+  
+  Args:
+    args: command line arguments
+  """
 	# Normalize noise between [0, 1]
-  argspar.val_noiseL /= 255.
-  argspar.noiseIntL[0] /= 255.
-  argspar.noiseIntL[1] /= 255.
-  
-  # Add experiment_name to experiments folder
-  argspar.experiment_name = Path("experiments") / argspar.experiment_name
-  
-  if not (argspar.traindbf).exists():
-    parser.exit("The file {} for training does not exists".format(argspar.traindbf))
+  args.val_noiseL /= 255.
+  args.noiseIntL[0] /= 255.
+  args.noiseIntL[1] /= 255.
 
-  if not (argspar.valdbf).exists():
-    parser.exit("The file {} for training does not exists".format(argspar.valdbf))
+  # Add experiment_name to experiments folder
+  args.experiment_name = Path("experiments") / args.experiment_name
+
+  if not (args.traindbf).exists():
+    exit("The file {} for training does not exists".format(args.traindbf))
+
+  if not (args.valdbf).exists():
+    exit("The file {} for training does not exists".format(args.valdbf))
 
   print("\n### Training FFDNet model ###")
   print("> Parameters:")
-  for p, v in zip(argspar.__dict__.keys(), argspar.__dict__.values()):
+  for p, v in zip(args.__dict__.keys(), args.__dict__.values()):
     print('\t{}: {}'.format(p, v))
   print('\n')
-  train(argspar)
-
-
-if __name__ == "__main__":
-  # Parse arguments
-  print(sys.argv)
-  train_parsing()
+  train(args)
