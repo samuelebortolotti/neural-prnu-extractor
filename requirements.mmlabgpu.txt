@@ -4,7 +4,6 @@ torchvision==0.9.1
 -f https://cs.stanford.edu/~nfliu/files/pytorch/whl/torch_stable.html
 opencv-python>=4.5.4.58
 numpy>=1.21.4
-torch>=1.10.0
 scikit-image>=0.18.3
 h5py>=3.1.0
 tensorboard>=2.7.0

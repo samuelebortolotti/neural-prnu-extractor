@@ -32,7 +32,7 @@ def train_parsing():
             help="path of log directory inside of the folder experiments [default: YYYY_MM_DD_hh_mm_ss]")
   parser.add_argument("--batch_size", "-bs", type=int, default=64, 	\
             help="Training batch size [default: 64]")
-  parser.add_argument("--val_batch_size", "-vbs", type=int, default=128, 	\
+  parser.add_argument("--val_batch_size", "-vbs", type=int, default=64, 	\
            	help="Validation batch size [default: 64]")
   parser.add_argument("--epochs", "-e", type=int, default=100, \
             help="Number of total training epochs [default: 100]")
@@ -57,8 +57,8 @@ def train_parsing():
 						help="h5py file containing the images for training the net [default: 'datasets/train_rgb.h5']")
   parser.add_argument("--valdbf", "-vf", type=Path, default="datasets/val_rgb.h5",
 						help="h5py file containing the images for validating the net [default: 'datasets/val_rgb.h5']")
-  parser.add_argument("--gpu_fraction", "-gf", type=float, default=1, 	\
-					  help="Set the gpu to use only a fraction of the total memory [default: 1]")
+  parser.add_argument("--gpu_fraction", "-gf", type=float, default=1.0, 	\
+					  help="Set the gpu to use only a fraction of the total memory [default: 1.0]")
   argspar = parser.parse_args()
 
 	# Normalize noise between [0, 1]

@@ -1,6 +1,8 @@
 
-A PyTorch implementation of FFDNet image denoising.
+FFDNet-photo-response-non-uniformity.
 ===================================================
+
+An modified version of the ``PyTorch implementation of FFDNet image denoising``, created for the ``Signal, Image, and Video`` course of the master's degree program in Artificial Intelligence System and Computer Science at the ``University of Trento``.
 
 ABOUT
 -----
@@ -27,9 +29,11 @@ Later authors
 OVERVIEW
 --------
 
-This source code provides a PyTorch implementation of FFDNet image denoising, as in Zhang, Kai, Wangmeng Zuo, and Lei Zhang. "FFDNet: Toward a fast and flexible solution for CNN based image denoising." 
+This source code provides a modified version of the "FFDNet image denoising, as in Zhang, Kai, Wangmeng Zuo, and Lei Zhang. ``FFDNet: Toward a fast and flexible solution for CNN based image denoising.``
+`FFDNet paper <https://arxiv.org/abs/1710.04026>`_.
 
-`https://arxiv.org/abs/1710.04026 <https://arxiv.org/abs/1710.04026>`_.
+This version, unlike the original, concentrates on detecting the cameras' `PRNU <https://en.wikipedia.org/wiki/Photo_response_non-uniformity>`_.
+It includes the option of training the network using the `Wiener filter <https://en.wikipedia.org/wiki/Wiener_filter>`_ as a strategy for detecting and extracting noise from images, in addition to the original method provided in the paper.
 
 USER GUIDE
 ----------
@@ -38,7 +42,6 @@ The code as is runs in Python 3.9 with the following dependencies:
 
 Dependencies
 ------------
-
 
 * `PyTorch v1.10.0 <http://pytorch.org/>`_
 * `scikit-image <http://scikit-image.org/>`_
@@ -51,40 +54,60 @@ Dependencies
 Usage
 -----
 
+To facilitate the use of the application, a ``Makefile`` has been provided; to see its functions, simply call the appropriate ``help`` command with `GNU/Make <https://www.gnu.org/software/make/>`_
+
+.. code-block:: shell
+
+   make help
+
 0. Set up
 ^^^^^^^^^
+
+For the development phase, the Makefile provides an automatic method to create a virtual environment.
+If you want to a virtual environment for the project you can run the following commands
 
 .. code-block:: shell
 
    pip install --upgrade pip
 
+Virtual environment creation in the venv folder
+
 .. code-block:: shell
 
    make env
 
+Virtual environment activation
+
 .. code-block:: shell
 
-   source venv/ffdnet/bin/activate
+   source ./venv/ffdnet/bin/activate
+
+Install the requirements listed in ``requirements.txt``
 
 .. code-block:: shell
 
    make install
 
+**Note:** if you have Tesla K40c GPU you can use dependency file for MMlab GPU [``requirements.mmlabgpu.txt``]
+
+.. code-block:: shell
+
+   make install-mmlab
+
 1. Documentation
 ^^^^^^^^^^^^^^^^
 
-The documentation are built using `Sphinx v4.3.0 <https://www.sphinx-doc.org/en/master/>`_.
+The documentation is built using `Sphinx v4.3.0 <https://www.sphinx-doc.org/en/master/>`_.
 
-If you want to build the documentation, you need first to 
-enter the project folder:
+If you want to build the documentation, you need first to enter the project folder:
 
-Install the development dependencies
+Install the development dependencies [``requirements.dev.txt``]
 
 .. code-block:: shell
 
    make install-dev
 
-Build the sphinx layout
+Build the Sphinx layout
 
 .. code-block:: shell
 
@@ -108,20 +131,20 @@ Open the documentation
 If you want to denoise an image using a one of the pretrained models
 found under the *models* folder you can execute
 
-.. code-block::
+.. code-block:: shell
 
    python test_ffdnet.py \
      --input input.png \
 
 To run the algorithm on CPU instead of GPU:
 
-.. code-block::
+.. code-block:: shell
 
    python test_ffdnet.py \
      --input input.png \
      --no_gpu
 
-Or simply:
+Or just change the flags value within the Makefile and run
 
 .. code-block:: shell
 
@@ -129,8 +152,8 @@ Or simply:
 
 **NOTES**
 
-
 * Models have been trained for values of noise in [0, 75]
+* Models have been trained with the Wiener filter as denoising method
 
 3. Training
 ^^^^^^^^^^^
@@ -143,11 +166,10 @@ First, you will need to prepare the dataset composed of patches by executing
 training and validation datasets by passing *--trainset_dir* and
 *--valset_dir*\ , respectively.
 
-Image datasets are not provided with this code, but the following can be downloaded from:
+This code does not include image datasets, however the following may be obtained from:
 `Vision Dataset <https://lesc.dinfo.unifi.it/VISION/>`_
 
 **NOTES**
-
 
 * To prepare a grayscale dataset: ``python prepare_patches.py --gray``
 * *--max_number_patches* can be used to set the maximum number of patches
@@ -161,7 +183,7 @@ A model can be trained after having built the training and validation databases
 and *val_gray.h5* for grayscale denoising).
 Only training on GPU is supported.
 
-.. code-block::
+.. code-block:: shell
 
    python train.py \
      --batch_size 128 \

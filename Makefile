@@ -16,7 +16,7 @@ TEST_FLAGS := --input images/lena.jpg --weight_path weigths/best.pth --no_gpu --
 AUTHORS := --author "Matias Tassano, Simone Alghisi, Samuele Bortolotti, Massimo Rizzoli" 
 VERSION :=-r 0.1 
 LANGUAGE := --language en
-SPHINX_EXTENSIONS := --extensions sphinx.ext.autodoc --extensions sphinx.ext.napoleon
+SPHINX_EXTENSIONS := --extensions sphinx.ext.autodoc --extensions sphinx.ext.napoleon --extensions sphinx.ext.viewcode
 DOC_FOLDER := docs
 
 ## Quickstart
@@ -39,11 +39,6 @@ define INDEX
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to ffdnet's documentation!
-==================================
-
-README
-=================
 .. include:: ../../README.rst
 
 .. toctree::
@@ -78,10 +73,20 @@ OPEN := xdg-open
 SED := sed
 	
 # RULES
-.PHONY: help env install install-dev train test doc doc-layout
+.PHONY: help env install install-mmlab install-dev train test doc doc-layout
 
 help:
 	@$(ECHO) '$(YELLOW)Makefile help$(NONE)'
+	@$(ECHO) " \
+	* env 			: generates the virtual environment using venv\n \
+	* install		: install the requirements listed in requirements.txt\n \
+	* install-mmlab	: install the requirements for the MMlab GPU listed in requirements.mmlabgpu.txt \n \
+	* install-dev		: install the development requirements listed in requirements.dev.txt\n \
+	* doc-layout 		: generates the Sphinx documentation layout\n \
+	* doc 			: generates the documentation (requires an existing documentation layout)\n \
+	* open-doc 		: opens the documentation\n \
+	* train 		: train the FFDNet\n \
+	* test 		: test the FFDNet"
 
 env:
 	@$(ECHO) '$(GREEN)Creating the virtual environment..$(NONE)'

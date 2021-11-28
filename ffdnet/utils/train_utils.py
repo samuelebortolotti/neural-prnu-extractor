@@ -41,8 +41,8 @@ def load_dataset_and_dataloader(args):
   Args:
     args: command line arguments (use traindbf, valdbf, gray, batch_size)
   Returns:
-    datasets: a dictionary containing the dataset for both training and validation respectively under the key train and val
-    dataloaders: a dictionary containing the dataloaders for both training and validation respectively under the key train and val
+    datasets: a dictionary containing the dataset, for both training and validation, respectively under the key train and val
+    dataloaders: a dictionary containing the dataloaders, for both training and validation, respectively under the key train and val
   """
 
   print('> Loading dataset ...')
@@ -94,7 +94,7 @@ def init_loss():
   return nn.MSELoss(reduction='sum')
 
 def resume_training(args, model, optimizer):
-  r"""Resumes the training if the corresponding flag is specified
+  r"""Resumes the training if the corresponding flag is specified.
   If the resume_training flag is set to true, the function tries to recover, from the checkpoint specified, the number of epoch, training and validation parameters.
   If the resume_training flag is set to false, the parameters are set to the default ones
 
