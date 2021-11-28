@@ -136,7 +136,7 @@ def init_logger(argdict):
 
   logger = logging.getLogger(__name__)
   logger.setLevel(level=logging.INFO)
-  fh = logging.FileHandler(join(argdict.log_dir, 'log.txt'), mode='a')
+  fh = logging.FileHandler(join(argdict.experiment_name, 'log.txt'), mode='a')
   formatter = logging.Formatter('%(asctime)s - %(message)s')
   fh.setFormatter(formatter)
   logger.addHandler(fh)

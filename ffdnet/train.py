@@ -2,8 +2,7 @@
 Trains a FFDNet model
 
 By default, the training starts with a learning rate equal to 1e-3 (--lr).
-After the number of epochs surpasses the first milestone (--milestone), the
-lr gets divided by 100. Up until this point, the orthogonalization technique
+Up until this point, the orthogonalization technique
 described in the FFDNet paper is performed (--no_orthog to set it off).
 
 Copyright (C) 2018, Matias Tassano <matias.tassano@parisdescartes.fr>
@@ -89,8 +88,9 @@ def train(args):
         for i, data in enumerate(dataloaders[phase], 0):
           if phase == 'train':
             model.train()
-            model.zero_grad()
-            optimizer.zero_grad()
+            # try to set the gradient to None
+            model.zero_grad(set_to_none = True)
+            optimizer.zero_grad(set_to_none = True)
             params = training_params
           else:
             model.eval()
@@ -174,10 +174,10 @@ def train(args):
 
     # save model and checkpoint
     training_params['start_epoch'] = epoch + 1
-    torch.save(model.state_dict(), os.path.join(args.log_dir, 'net.pth'))
+    torch.save(model.state_dict(), os.path.join(args.experiment_name, 'net.pth'))
     if val_params['best_loss'] >  metrics['loss']['val']:
       val_params['best_loss'] = metrics['loss']['val']
-      torch.save(model.state_dict(), os.path.join(args.log_dir, 'best.pth'))
+      torch.save(model.state_dict(), os.path.join(args.experiment_name, 'best.pth'))
     save_dict = {
       'state_dict': model.state_dict(),
       'optimizer' : optimizer.state_dict(),
@@ -185,7 +185,7 @@ def train(args):
       'val_params': val_params,
       'args': args
       }
-    torch.save(save_dict, os.path.join(args.log_dir, 'ckpt.pth'))
+    torch.save(save_dict, os.path.join(args.experiment_name, 'ckpt.pth'))
     if epoch % args.save_every_epochs == 0:
-      torch.save(save_dict, os.path.join(args.log_dir, 'ckpt_e{}.pth'.format(epoch+1)))
+      torch.save(save_dict, os.path.join(args.experiment_name, 'ckpt_e{}.pth'.format(epoch+1)))
     del save_dict

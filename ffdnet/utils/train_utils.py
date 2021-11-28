@@ -31,6 +31,20 @@ def weights_init_kaiming(lyr):
   
 
 def load_dataset_and_dataloader(args):
+  r"""Load the datasets and the dataloaders (for both training and validation) according to what has been specified through the command line arguments
+  Default:
+    - Dataset train shuffle = True
+    - Dataset validation shuffle = False
+    - DataLoader train shuffle = True
+    - DataLoader validation shuffle = False
+
+  Args:
+    args: command line arguments (use traindbf, valdbf, gray, batch_size)
+  Returns:
+    datasets: a dictionary containing the dataset for both training and validation respectively under the key train and val
+    dataloaders: a dictionary containing the dataloaders for both training and validation respectively under the key train and val
+  """
+
   print('> Loading dataset ...')
 
   dataset_train = Dataset(dbf=args.traindbf, train=True, gray_mode=args.gray, shuffle=True)
@@ -45,12 +59,24 @@ def load_dataset_and_dataloader(args):
   return datasets, dataloaders
 
 def create_model(args):
+  r"""Creates the model by initializing the input channel according to the args.gray flag.
+  If args.gray is specified, the FFDNET will have 1 as number of input channels, otherwise it will be set to 3 (RGB)
+  Moreover, after the Neural Network is initialized, the weights are set using the weights_init_kaiming function.
+  Finally the model is moved to GPU and if possible parallelized using the number of specified gpu devices
+
+  Args:
+    args: command line arguments (use gray)
+  Returns:
+    model: FFDNet initialized
+  """
+
   # Check channel number
   if not args.gray:
     in_ch = 3
   else:
     in_ch = 1
   net = FFDNet(num_input_channels=in_ch)
+
   # Initialize model with He init
   net.apply(weights_init_kaiming)
 
@@ -60,11 +86,30 @@ def create_model(args):
   return model
 
 def init_loss():
+  r"""Initializes the loss function for the FFDNet (MSE)
+
+  Returns:
+    loss: loss function
+  """
   return nn.MSELoss(reduction='sum')
 
 def resume_training(args, model, optimizer):
+  r"""Resumes the training if the corresponding flag is specified
+  If the resume_training flag is set to true, the function tries to recover, from the checkpoint specified, the number of epoch, training and validation parameters.
+  If the resume_training flag is set to false, the parameters are set to the default ones
+
+  Args:
+    args: command line arguments (use gray, experiment_name)
+    model: FFDNet
+    optimizer: optimizer
+
+  Returns:
+    training_params: training parameters [step, no_orthog, num_bad_epochs]
+    val_params: validation parameters [step, best_loss]
+    start_epoch: epoch number
+  """
   if args.resume_training:
-    resumef = os.path.join(args.log_dir, 'ckpt.pth')
+    resumef = os.path.join(args.experiment_name, 'ckpt.pth')
     if os.path.isfile(resumef):
       checkpoint = torch.load(resumef)
       print("> Resuming previous training")
@@ -107,6 +152,21 @@ def resume_training(args, model, optimizer):
   return training_params, val_params, start_epoch
 
 def create_input_variables(args, data):
+  r"""Creates the FFDNet input variables according the denoising method specified:
+    - wiener:
+      the original image is denoised by appling the Wiener filter on the green channel (if the image is RGB) 
+    - if such flag is not specified, by default the approach proposed in "FFDNet: Toward a Fast and Flexible Solution for CNN based Image Denoising" is applied
+  
+  Args:
+    args: command line arguments (use gray, experiment_name)
+    data: image batch
+
+  Returns:
+    img: denoised images
+    imgn: noisy images
+    noise: noise patterns
+    stdn_var: noise standard deviations (noise treated as AWGN)
+  """
   if args.wiener: 
     imgn = data
     img, stdn = estimate_noise(imgn, (5, 5))
@@ -134,13 +194,41 @@ def create_input_variables(args, data):
   return img, imgn, stdn_var, noise
 
 def compute_loss(criterion, pred, noise, imgn):
+  r"""Computes the loss on the batch according the criterion
+
+  Args:
+    criterion: loss criterion
+    pred: noise predictions
+    noise: original noise patters
+    imgn: noisy images
+
+  Returns:
+    loss value: loss value
+  """
   return criterion(pred, noise) / (imgn.size()[0]*2)
 
 def get_lr(optimizer):
+  r"""Returns the learning rate value
+
+  Args:
+    optimizer: optimizer
+
+  Returns:
+    lr: learning rate
+  """
   for param_group in optimizer.param_groups:
     return param_group['lr']
 
 def estimate_noise(image_list, wiener_kernel_size):
+  r"""Estimate noise using the wiener filter (if the image is RGB then the filter is performed on the green channel only)
+
+  Args:
+    image_list: list of noisy images
+    wiener_kernel_size: tuple which depicts the wiener kernel size
+
+  Returns:
+    (filtered_images, noises): tuple of filtered images and associated noise
+  """
   # image should be an array of arrays [0 - 1] integer value already in grayscale
   if isinstance(image_list, torch.Tensor) or isinstance(image_list, (np.ndarray, np.generic)):
     n_images = image_list.shape[0]
@@ -162,7 +250,6 @@ def estimate_noise(image_list, wiener_kernel_size):
   for i in range(n_images):
     image = np.asarray(image_list[i]).squeeze()
     filtered = wiener(image, wiener_kernel_size)
-    #filtered = np.clip(filtered, 0, 1)
 
     array_sum = np.sum(filtered)
     array_has_nan = np.isnan(array_sum)

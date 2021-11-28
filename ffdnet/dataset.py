@@ -60,6 +60,7 @@ def prepare_data(data_path, \
     val_data_path: path containing the validation image dataset
     patch_size: size of the patches to extract from the images
     stride: size of stride to extract patches
+    total_patches: total number desired of patches 
     max_num_patches: maximum number of patches to extract
     aug_times: number of times to augment the available data minus one
     gray_mode: build the databases composed of grayscale patches
@@ -152,6 +153,15 @@ def prepare_data(data_path, \
 class Dataset(udata.Dataset):
   r"""Implements torch.utils.data.Dataset
   """
+
+  r"""Initialize the Dataset
+
+  Args:
+    dbf: path containing the dataset file
+    train: boolean flag which describes whether the dataset is the training set
+    gray_mode: boolean flag which describes whether the dataset contains gray images
+    shuffle: boolean flag which describes whether the dataset requires to be shuffled
+  """
   def __init__(self, dbf, train=True, gray_mode=False, shuffle=False):
     super(Dataset, self).__init__()
     self.train = train
@@ -165,9 +175,16 @@ class Dataset(udata.Dataset):
       random.shuffle(self.keys)
     h5f.close()
 
+  r"""Returns the number of elements in the dataset
+  """
   def __len__(self):
     return len(self.keys)
 
+  r"""Returns the element at a given position in the dataset
+
+  Args:
+    index: index of the element to be returned
+  """
   def __getitem__(self, index):
     h5f = h5py.File(self.dbf, 'r')
     key = self.keys[index]

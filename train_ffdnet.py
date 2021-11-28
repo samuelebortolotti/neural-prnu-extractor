@@ -25,42 +25,40 @@ def train_parsing():
 
   """
   parser = argparse.ArgumentParser(description="FFDNet")
-  parser.add_argument("--gray", action='store_true',\
-            help='train grayscale image denoising instead of RGB')
-  parser.add_argument("--experiment_name", type=Path, \
+  parser.add_argument("--gray", "-g", action="store_true",\
+            help="train grayscale image denoising instead of RGB [default: False]")
+  parser.add_argument("--experiment_name", "-en", type=Path, \
             default=datetime.now().strftime("%Y_%m_%d_%H_%M_%S"), \
-            help='path of log directory inside of the folder experiments')
-  parser.add_argument("--batch_size", type=int, default=128, 	\
-            help="Training batch size")
-  parser.add_argument("--epochs", "--e", type=int, default=80, \
-            help="Number of total training epochs")
-  parser.add_argument("--resume_training", "--r", action='store_true',\
-            help="resume training from a previous checkpoint")
-  parser.add_argument("--milestone", nargs=2, type=int, default=[50, 60], \
-            help="When to decay learning rate; should be lower than 'epochs'")
+            help="path of log directory inside of the folder experiments [default: YYYY_MM_DD_hh_mm_ss]")
+  parser.add_argument("--batch_size", "-bs", type=int, default=64, 	\
+            help="Training batch size [default: 64]")
+  parser.add_argument("--val_batch_size", "-vbs", type=int, default=128, 	\
+           	help="Validation batch size [default: 64]")
+  parser.add_argument("--epochs", "-e", type=int, default=100, \
+            help="Number of total training epochs [default: 100]")
+  parser.add_argument("--resume_training", "-r", action="store_true",\
+            help="resume training from a previous checkpoint [default: False]")
   parser.add_argument("--lr", type=float, default=1e-3, \
-           help="Initial learning rate")
-  parser.add_argument("--no_orthog", action='store_true',\
-            help="Don't perform orthogonalization as regularization")
+            help="Initial learning rate [default: 1e-3]")
+  parser.add_argument("--no_orthog", action="store_true",\
+            help="Don't perform orthogonalization as regularization [default: False]")
   parser.add_argument("--save_every", type=int, default=10,\
             help="Number of training steps to log psnr and perform \
-            orthogonalization")
+            orthogonalization [default: 10]")
   parser.add_argument("--save_every_epochs", type=int, default=5,\
-            help="Number of training epochs to save state")
+            help="Number of training epochs to save state [default: 5]")
   parser.add_argument("--noiseIntL", nargs=2, type=int, default=[0, 75], \
-            help="Noise training interval")
+            help="Noise training interval [default: 0, 75]")
   parser.add_argument("--val_noiseL", type=float, default=25, \
-            help='noise level used on validation set')
-  parser.add_argument("--wiener", action='store_true',\
-            help="Apply wiener filter to extract noise from dataset")
-  parser.add_argument('--val_batch_size', type=int, default=128, 	\
-           	help='Validation batch size')
-  parser.add_argument('--traindbf', type=Path, default='datasets/train_rgb.h5',
-						help='h5py file containing the images for training the net')
-  parser.add_argument('--valdbf', type=Path, default='datasets/val_rgb.h5',
-						help='h5py file containing the images for validating the net')
-  parser.add_argument('--gpu_fraction', type=float, default=1, 	\
-					  help='Set the gpu to use only a fraction of the total memory')
+            help="noise level used on validation set [default: 25]")
+  parser.add_argument("--wiener", "-w", action="store_true",\
+            help="Apply wiener filter to extract noise from dataset [default: False]")
+  parser.add_argument("--traindbf", "-tf", type=Path, default="datasets/train_rgb.h5",
+						help="h5py file containing the images for training the net [default: 'datasets/train_rgb.h5']")
+  parser.add_argument("--valdbf", "-vf", type=Path, default="datasets/val_rgb.h5",
+						help="h5py file containing the images for validating the net [default: 'datasets/val_rgb.h5']")
+  parser.add_argument("--gpu_fraction", "-gf", type=float, default=1, 	\
+					  help="Set the gpu to use only a fraction of the total memory [default: 1]")
   argspar = parser.parse_args()
 
 	# Normalize noise between [0, 1]

@@ -165,20 +165,18 @@ Only training on GPU is supported.
 
    python train.py \
      --batch_size 128 \
-     --epochs 80 \
-     --noiseIntL 0 75
-     --val_noiseL 25 \
-     --wiener \
      --val_batch_size 128 \
-     --log_dir logs \
+     --epochs 80 \
+     --wiener \
+     --experiment_name en \
      --gray
 
 **NOTES**
 
 
 * The training process can be monitored with TensorBoard as logs get saved
-  in the *log_dir* folder
-* By default, noise added at validation is set to 20 (\ *--val_noiseL* flag)
+  in the *experiments/experiment_name* folder
+* By default, noise added at validation is set to 25 (\ *--val_noiseL* flag)
 * A previous training can be resumed passing the *--resume_training* flag
 
 ABOUT THIS FILE

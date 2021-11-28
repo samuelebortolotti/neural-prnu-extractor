@@ -8,7 +8,7 @@ PYFLAGS :=
 PIP := pip
 # ======= TRAIN =========
 TRAIN := train_ffdnet.py
-TRAIN_FLAGS := --wiener --batch_size 64 --val_batch_size 64 --gray --gpu_fraction 0.3
+TRAIN_FLAGS := --wiener --gray --traindbf datasets/train_gray.h5 --valdbf datasets/val_gray.h5 --gpu_fraction 0.3
 # ======= TEST  =========
 TEST := test_ffdnet.py
 TEST_FLAGS := --input images/lena.jpg --weight_path weigths/best.pth --no_gpu --output images --gray
@@ -93,6 +93,11 @@ env:
 install:
 	@$(ECHO) '$(GREEN)Installing requirements..$(NONE)'
 	@pip install -r requirements.txt
+	@$(ECHO) '$(GREEN)Done$(NONE)'
+
+install-mmlab:
+	@$(ECHO) '$(GREEN)Installing requirements for MMlab GPU..$(NONE)'
+	@pip install -r requirements.mmlabgpu.txt
 	@$(ECHO) '$(GREEN)Done$(NONE)'
 
 install-dev:
