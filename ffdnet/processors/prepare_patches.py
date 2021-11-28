@@ -10,6 +10,7 @@ version 3 of the License, or (at your option) any later
 version. You should have received a copy of this license along
 this program. If not, see <http://www.gnu.org/licenses/>.
 """
+from typing_extensions import Required
 from ffdnet.dataset import prepare_data
 
 
@@ -19,24 +20,30 @@ def configure_subparsers(subparsers):
   Args:
     subparsers: subparser
   """
+  """
+  Args:
+    data_path: path containing the image dataset
+    patch_size: size of the patches to extract from the images
+    stride: size of stride to extract patches
+    dataset_file: name of the file for the dataset
+    total_samples: total number desired of samples 
+    gray_mode: build the databases composed of grayscale patches
+  """
   parser = subparsers.add_parser('prepare_patches', help='Prepare patches')
-  parser.add_argument("--gray", action='store_true',\
-            help='prepare grayscale database instead of RGB')
+  parser.add_argument("--gray", "-g", action='store_true',
+            help='prepare grayscale database instead of RGB [default: False]')
+  parser.add_argument("--data_path", "-dp", type=str, required=True,
+            help='Path to the image folder')
+  parser.add_argument("--dataset_file", "-df", type=str, required=True,
+            help='Name of the generated .h5 file inside of the dataset folder')
 
   # Preprocessing parameters
-  parser.add_argument("--patch_size", "--p", type=int, default=44, \
-            help="Patch size")
-  parser.add_argument("--stride", "--s", type=int, default=20, \
-            help="Size of stride")
-  parser.add_argument("--max_number_patches", "--m", type=int, default=None, \
-            help="Maximum number of patches")
-  parser.add_argument("--aug_times", "--a", type=int, default=1, \
-            help="How many times to perform data augmentation")
-  # Dirs
-  parser.add_argument("--trainset_dir", type=str, default=None, \
-           help='path of trainset')
-  parser.add_argument("--valset_dir", type=str, default=None, \
-             help='path of validation set')
+  parser.add_argument("--patch_size", "-ps", type=int, default=44,
+            help="Patch size [default: 44]")
+  parser.add_argument("--stride", "-s", type=int, default=20,
+            help="Size of stride [default: 20]")
+  parser.add_argument("--total_samples", "-ts", type=int, default=None,
+            help="Total number of samples (distributed across all images) [default: None]")
   parser.set_defaults(func=main)
 
 def main(args):
@@ -46,28 +53,17 @@ def main(args):
     args: command line arguments
   """
 
-  # default dataset
-  if args.gray:
-    if args.trainset_dir is None:
-      args.trainset_dir = 'data/gray/train'
-    if args.valset_dir is None:
-      args.valset_dir = 'data/gray/Set12'
-  else:
-    if args.trainset_dir is None:
-      args.trainset_dir = 'data/rgb/CImageNet_expl'
-    if args.valset_dir is None:
-      args.valset_dir = 'data/rgb/Kodak24'
-
   print("\n### Building databases ###")
   print("> Parameters:")
   for p, v in zip(args.__dict__.keys(), args.__dict__.values()):
     print('\t{}: {}'.format(p, v))
   print('\n')
 
-  prepare_data(args.trainset_dir,\
-          args.valset_dir,\
-          args.patch_size,\
-          args.stride,\
-          args.max_number_patches,\
-          aug_times=args.aug_times,\
-          gray_mode=args.gray)
+  prepare_data(
+    data_path=args.data_path,
+    patch_size=args.patch_size,
+    stride=args.stride,
+    dataset_file=args.dataset_file,
+    total_samples=args.total_samples,
+    gray_mode=args.gray
+  )

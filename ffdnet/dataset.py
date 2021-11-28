@@ -46,24 +46,20 @@ def img_to_patches(img, win, stride=1):
   return res.reshape([endc, win, win, total_pat_num])
 
 def prepare_data(data_path,
-         val_data_path,
          patch_size,
          stride,
-         train_file,
-         val_file,
-         total_patches,
+         dataset_file,
+         total_samples,
          gray_mode=False):
   r"""Builds the training and validations datasets by scanning the
   corresponding directories for images and extracting	patches from them.
 
   Args:
-    data_path: path containing the training image dataset
-    val_data_path: path containing the validation image dataset
+    data_path: path containing the image dataset
     patch_size: size of the patches to extract from the images
     stride: size of stride to extract patches
-    total_patches: total number desired of patches 
-    max_num_patches: maximum number of patches to extract
-    aug_times: number of times to augment the available data minus one
+    dataset_file: name of the file for the dataset
+    total_samples: total number desired of patches 
     gray_mode: build the databases composed of grayscale patches
   """
   # training database
@@ -74,15 +70,17 @@ def prepare_data(data_path,
     files.extend(glob.glob(os.path.join(data_path, tp)))
   files.sort()
 
-  traindbf = 'dataset/'+ train_file
-  valdbf = 'dataset/' + val_file
+  traindbf = 'dataset/'+ dataset_file
 
-  train_num = 0
-  val_num = 0
+  sample_num = 0
   i = 0
   n_files = len(files)
-  patches_per_file = total_patches//n_files
-  reminder = total_patches%n_files
+  if total_samples is not None:
+    samples_per_file = total_samples//n_files
+    reminder = total_samples%n_files
+  else:
+    samples_per_file = total_samples
+    reminder = 0
   t_file = tqdm(total=n_files)
   while i < len(files):
     with h5py.File(traindbf, 'a') as h5f:
@@ -102,10 +100,10 @@ def prepare_data(data_path,
       nx = 0
       n_patches = patches.shape[3]
       already_picked = False
-      while nx < n_patches and nx < patches_per_file:
+      while nx < n_patches and nx < samples_per_file:
         data = patches[:, :, :, nx]
-        h5f.create_dataset(str(train_num), data=data)
-        train_num += 1
+        h5f.create_dataset(str(sample_num), data=data)
+        sample_num += 1
         if reminder > 0 and not already_picked:
           reminder -= 1
           already_picked = True
@@ -115,34 +113,8 @@ def prepare_data(data_path,
       t_file.update(1)
   t_file.close()
 
-  # validation database
-  print('\n> Validation database')
-  if val_data_path is None:
-    print('\n> No')
-  else:
-    files = []
-    for tp in types:
-      files.extend(glob.glob(os.path.join(val_data_path, tp)))
-    files.sort()
-    h5f = h5py.File(valdbf, 'w')
-    val_num = 0
-    for i, item in tqdm(enumerate(files)):
-      img = cv2.imread(item)
-      if not gray_mode:
-        # C. H. W, RGB image
-        img = (cv2.cvtColor(img, cv2.COLOR_BGR2RGB)).transpose(2, 0, 1)
-      else:
-        # C, H, W grayscale image (C=1)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        img = np.expand_dims(img, 0)
-      img = normalize(img)
-      h5f.create_dataset(str(val_num), data=img)
-      val_num += 1
-    h5f.close()
-
   print('\n> Total')
-  print('\ttraining set, # samples %d, # patches %d' % (train_num, train_patches))
-  print('\tvalidation set, # samples %d \n' % val_num)
+  print('\tdataset {}, # samples {}'.format(dataset_file, sample_num))
 
 class Dataset(udata.Dataset):
   r"""Implements torch.utils.data.Dataset
