@@ -19,7 +19,6 @@ import os
 import numpy as np
 import torch
 import torch.optim as optim
-from torch import autocast
 from torchvision.utils import make_grid
 from torch.utils.tensorboard import SummaryWriter
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -28,11 +27,22 @@ from ffdnet.utils.data_utils import batch_psnr, svd_orthogonalization, init_logg
 from ffdnet.utils.train_utils import load_dataset_and_dataloader, create_model, \
 			init_loss, resume_training, create_input_variables, compute_loss, get_lr
 
+# try to import the autocast command
+try:
+  from torch import autocast
+except ImportError:
+  print('torch.autocast is not supported in {}'.format(torch.__version__))
+
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 def train(args):
-  torch.cuda.set_per_process_memory_fraction(args.gpu_fraction, 0)
+
+  try:
+    torch.cuda.set_per_process_memory_fraction(args.gpu_fraction)
+  except NameError:
+	  print('Torch version {} does not support torch.cuda.set_per_process_memory_fraction, no GPU memory limit will be set'.format(torch.__version__))
+
 	# Performs the main training loop
 
 	# Load dataset
@@ -89,7 +99,11 @@ def train(args):
           img, imgn, stdn_var, noise = create_input_variables(args, data)
 
           # Evaluate model
-          with autocast(device_type='cuda'):
+          try:
+            with autocast(device_type='cuda'):
+              pred = model(imgn, stdn_var)
+              loss = compute_loss(criterion, pred, noise, imgn).cpu()
+          except NameError:
             pred = model(imgn, stdn_var)
             loss = compute_loss(criterion, pred, noise, imgn).cpu()
 
@@ -97,7 +111,11 @@ def train(args):
             loss.backward()
             optimizer.step()
             model.eval()
-            with autocast(device_type='cuda'):
+
+            try:
+              with autocast(device_type='cuda'):
+                pred = model(imgn, stdn_var)
+            except NameError:
               pred = model(imgn, stdn_var)
 
           out = torch.clamp(imgn - pred, 0., 1.)
