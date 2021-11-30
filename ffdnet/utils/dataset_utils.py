@@ -62,41 +62,51 @@ def split_dataset_with_fixed_dimension(dataset_folder: str, destination_folder: 
         image_partition[camera_model][image_type].append(str(image_path))
         img_per_model[camera_model][image_type] += 1
         total_images += 1
-    for camera_model, img_type_dict in img_per_model.items():
-      for image_type, n_images in img_type_dict.items():
-        img_per_model[camera_model][image_type] = n_images/total_images
     if not os.path.exists(destination_folder):
       os.mkdir(destination_folder)
     if not os.path.exists(destination_folder + '/train'):
       os.mkdir(destination_folder + '/train')
     if not os.path.exists(destination_folder + '/val'):
       os.mkdir(destination_folder + '/val')
+    counters = {
+      'train': 0,
+      'val': 0,
+    }
+    totals = {
+      'train': total_train_size if total_train_size is not None else total_images,
+      'val': total_val_size if total_val_size is not None else total_images,
+    }
     for camera_model, image_type_dict in tqdm(image_partition.items(), desc="Loading camera models"):
-      for image_type, image_path_list in tqdm(image_type_dict.items(), desc="Loading ".format(camera_model)):
+      for image_type, image_path_list in tqdm(image_type_dict.items(), desc="Loading {}".format(camera_model)):
         random.shuffle(image_path_list)
         list_size = len(image_path_list) - 1
         train_size = int(list_size*train_frac)
         total_train_imgs_from_model = None
         if total_train_size is not None:
-          total_train_imgs_from_model = round(img_per_model[camera_model][image_type]*total_train_size)
+          total_train_imgs_from_model = round(img_per_model[camera_model][image_type]*total_train_size/total_images)
         total_val_imgs_from_model = None
         if total_val_size is not None:
-          total_val_imgs_from_model = round(img_per_model[camera_model][image_type]*total_val_size)
+          total_val_imgs_from_model = round(img_per_model[camera_model][image_type]*total_val_size/total_images)
         train_list = image_path_list[:train_size]
         val_list = image_path_list[train_size:]
+        dataset_lists = {
+          'train': train_list,
+          'val': val_list
+        }
         total_imgs_from_model = {
           'train': total_train_imgs_from_model, 
           'val': total_val_imgs_from_model
         }
         for phase in ['train', 'val']:
-          for i, image_path in tqdm(enumerate(train_list), desc="Working with {} for {}".format(image_type, phase)):
-            if total_imgs_from_model[phase] is not None and i >= total_imgs_from_model[phase]:
+          for i, image_path in tqdm(enumerate(dataset_lists[phase]), desc="Working with {} for {}".format(image_type, phase)):
+            if (total_imgs_from_model[phase] is not None and i >= total_imgs_from_model[phase]) or (counters[phase] >= totals[phase]):
               break
             else:
               if copy:
                 copyfile(image_path, destination_folder + '/' + phase + '/' + image_path.split('/')[-1])
               else:
                 move(image_path, destination_folder + '/' + phase + '/' + image_path.split('/')[-1])
+              counters[phase] += 1
 
 def split_training_into_subfolder(n_sample: int, data_folder: str, destination_folder):
   if os.path.exists(data_folder):

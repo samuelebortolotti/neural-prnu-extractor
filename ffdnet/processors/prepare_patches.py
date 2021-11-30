@@ -32,9 +32,9 @@ def configure_subparsers(subparsers):
   parser = subparsers.add_parser('prepare_patches', help='Prepare patches')
   parser.add_argument("--gray", "-g", action='store_true',
             help='prepare grayscale database instead of RGB [default: False]')
-  parser.add_argument("--data_path", "-dp", type=str, required=True,
+  parser.add_argument("data_path", metavar='SRC_DIR', type=str,
             help='Path to the image folder')
-  parser.add_argument("--dataset_file", "-df", type=str, required=True,
+  parser.add_argument("dataset_file", metavar='DST_FILE', type=str,
             help='Name of the generated .h5 file inside of the dataset folder')
 
   # Preprocessing parameters

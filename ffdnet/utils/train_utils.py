@@ -158,7 +158,7 @@ def resume_training(args, model, optimizer):
     val_params['step'] = 0
     val_params['best_loss'] = np.inf
 
-  return training_params, val_params, start_epoch
+  return training_params, val_params, start_epoch, args
 
 def create_input_variables(args, data):
   r"""Creates the FFDNet input variables according the denoising method specified:

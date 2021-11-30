@@ -70,7 +70,7 @@ def prepare_data(data_path,
     files.extend(glob.glob(os.path.join(data_path, tp)))
   files.sort()
 
-  traindbf = 'dataset/'+ dataset_file
+  traindbf = 'datasets/'+ dataset_file
 
   sample_num = 0
   i = 0
@@ -79,7 +79,6 @@ def prepare_data(data_path,
     samples_per_file = total_samples//n_files
     reminder = total_samples%n_files
   else:
-    samples_per_file = total_samples
     reminder = 0
   t_file = tqdm(total=n_files)
   while i < len(files):
@@ -99,6 +98,8 @@ def prepare_data(data_path,
       np.random.shuffle(patches)
       nx = 0
       n_patches = patches.shape[3]
+      if total_samples is None:
+        samples_per_file = n_patches
       already_picked = False
       while nx < n_patches and nx < samples_per_file:
         data = patches[:, :, :, nx]

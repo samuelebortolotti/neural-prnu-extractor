@@ -25,6 +25,9 @@ def get_args():
     parser.print_usage()
     parser.exit(1)
 
+  if 'gray' in parsed_args and parsed_args.gray != True and 'filter' in parsed_args and parsed_args.filter == 'wiener':
+    parser.exit(1, 'wiener training requires images to be gray')
+
   return parsed_args
 
 def main(args):

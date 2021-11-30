@@ -63,7 +63,7 @@ def train(args):
   scheduler = ReduceLROnPlateau(optimizer, 'min', patience=40)
 
   # Resume training or start anew
-  training_params, val_params, start_epoch = resume_training(args, model, optimizer)
+  training_params, val_params, start_epoch, args = resume_training(args, model, optimizer)
   scheduler.num_bad_epochs = training_params['num_bad_epochs']
 
 	# Training
