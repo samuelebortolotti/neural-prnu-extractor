@@ -21,12 +21,14 @@ def configure_subparsers(subparsers):
             help='path to the dataset directory which should contain nat and flat folders')
   parser.add_argument("weight_path", type=str, \
             help='path to the weights of the FFDNet')
-  parser.add_argument("--noise_sigma", type=float, default=None, \
+  parser.add_argument("--sigma", type=float, default=None, \
             help='noise level used on dataset [default: None]')
-  parser.add_argument("--average_sigma", action='store_true', \
+  parser.add_argument("--mean_sigma", action='store_true', \
             help='compute the average sigma [default: False]')
-  parser.add_argument("--output", action='store_true', \
+  parser.add_argument("--output", type=str, default=None, \
             help="path where to save the estimated PRNU images [default: None]")
+  parser.add_argument("--cut_dim", type=int, nargs=3, default=[512, 512, 3], \
+            help="cut dimension for the prnu estimation (W, H, Ch) [default: 512 512 3]")
   parser.add_argument("--device", choices={'cuda', 'cpu'}, default = 'cuda', \
             help="model device [default: cuda]")
   parser.add_argument("--gray", action='store_true', \
@@ -61,6 +63,9 @@ def main(args):
     args.device = 'cpu'
     print('No GPU available')
 
+  # cut_dim
+  args.cut_dim = tuple(args.cut_dim)
+
   print("\n### Testing PRNU FFDNet model ###")
   print("> Parameters:")
   for p, v in zip(args.__dict__.keys(), args.__dict__.values()):
@@ -85,7 +90,9 @@ def prnu_ffdnet(args):
   model.load_state_dict(checkpoint)
 
   # extract prnu
-  prnus = prnu_utils.prnu_extract(args.flat_dataset, model, gray=args.gray, device=args.device)
+  prnus = prnu_utils.prnu_extract(args.flat_dataset, model, gray=args.gray,
+                                  device=args.device, cut_dim=args.cut_dim,
+                                  mean_sigma=args.mean_sigma, sigma=args.sigma)
 
   if args.output is not None:
     # Save the prnu images
@@ -96,8 +103,9 @@ def prnu_ffdnet(args):
       device_prnu.save('{}/prnu_{}.jpg'.format(args.output, device_name))
 
   # test prnu
-  statistics = prnu_utils.prnu_test(args.nat_dataset, \
+  statistics = prnu_utils.prnu_test(args.nat_dataset, 
                                     np.asarray(list(prnus.values())), 
                                     np.asarray(list(prnus.keys())), 
-                                    model, gray=args.gray)
+                                    model, gray=args.gray, cut_dim=args.cut_dim,
+                                    mean_sigma=args.mean_sigma, sigma=args.sigma)
   return statistics

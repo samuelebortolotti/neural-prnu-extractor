@@ -77,13 +77,23 @@ def test_ffdnet(args):
     args: command line arguments
   """
 
+  ## Load weigths
+  in_ch = 1
+  device_ids = [0]
+  net = FFDNet(num_input_channels = in_ch)
+  net.apply(weights_init_kaiming)
+  model = nn.DataParallel(net, device_ids = device_ids).to(args.device)
+  resumef = args.weight_path
+  checkpoint = torch.load(resumef, map_location=torch.device(args.device))
+  model.load_state_dict(checkpoint)
+
   for image_path in args.input:
     if not os.path.isfile(image_path):
       print('{} is not a file'.format(image_path))
       continue
 
     image = Image.open(image_path)
-    image = np.asarray(image).astype('float32')
+    image = np.asarray(image)
 
     if image.ndim == 3 and image.shape[2] >= 2:
       image_green = image[:, :, 1]
@@ -98,16 +108,6 @@ def test_ffdnet(args):
     # normalize
     image_green = image_green/255
     image_green = np.expand_dims(image_green, 0)
-
-    ## Load weigths
-    in_ch = 1
-    device_ids = [0]
-    net = FFDNet(num_input_channels = in_ch)
-    net.apply(weights_init_kaiming)
-    model = nn.DataParallel(net, device_ids = device_ids).to(args.device)
-    resumef = args.weight_path
-    checkpoint = torch.load(resumef, map_location=torch.device(args.device))
-    model.load_state_dict(checkpoint)
 
     # estimate noise
     wiener_denoised, stdn = estimate_noise([image_green], wiener_kernel_size=(5, 5))
@@ -135,9 +135,13 @@ def test_ffdnet(args):
 
     image_name = os.path.splitext(os.path.basename(image_path))[0]
 
+    wiener_denoised = np.uint8(wiener_denoised.cpu().detach().squeeze().numpy()*255)
+    prediction_denoised = torch.clamp((imgn - prediction), 0., 1.).cpu().detach().squeeze().numpy()
+    prediction_denoised = np.uint8(prediction_denoised*255)
+
     # save images
-    wiener_denoised = Image.fromarray(wiener_denoised.detach().squeeze().numpy(), 'L')
+    wiener_denoised = Image.fromarray(wiener_denoised, 'L')
     wiener_denoised.save('{}/{}_wiener_denoised.jpg'.format(args.output, image_name))
 
-    prediction_denoised = Image.fromarray((imgn - prediction).detach().squeeze().numpy(), 'L')
+    prediction_denoised = Image.fromarray(prediction_denoised, 'L')
     prediction_denoised.save('{}/{}_prediction_denoised.jpg'.format(args.output, image_name))
