@@ -6,3 +6,4 @@ scikit-image>=0.18.3
 h5py>=3.1.0
 tensorboard>=2.7.0
 tqdm>=4.62.3
+git+git://github.com/samuelebortolotti/prnu-python@v2.0

@@ -1,6 +1,6 @@
-torch==1.8.1+cu102 
+torch==1.8.1+cu102
 -f https://cs.stanford.edu/~nfliu/files/pytorch/whl/torch_stable.html
-torchvision==0.9.1 
+torchvision==0.9.1
 -f https://cs.stanford.edu/~nfliu/files/pytorch/whl/torch_stable.html
 opencv-python>=4.5.4.58
 numpy>=1.21.4
@@ -8,3 +8,4 @@ scikit-image>=0.18.3
 h5py>=3.1.0
 tensorboard>=2.7.0
 tqdm>=4.62.3
+git+git://github.com/samuelebortolotti/prnu-python@v2.0
