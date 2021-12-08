@@ -11,20 +11,16 @@ version. You should have received a copy of this license along
 this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import os
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
-import cv2
 import torch
 import torch.nn as nn
+from PIL import Image
 from torch.autograd import Variable
 from ffdnet.models import FFDNet
 from ffdnet.utils.train_utils import weights_init_kaiming, estimate_noise, compute_loss, init_loss
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
-plt.rcParams["figure.figsize"] = (10,8)
 
 def configure_subparsers(subparsers):
   r"""Configure a new subparser for testing FFDNet.
@@ -33,23 +29,14 @@ def configure_subparsers(subparsers):
     subparsers: subparser
   """
   parser = subparsers.add_parser('test', help='Test the FFDNet')
-  parser.add_argument('--add_noise', type=str, default="True")
-  parser.add_argument("--input", type=str, default="", \
-            help='path to input image', required=True)
-  parser.add_argument("--weight_path", type=str, default="", \
-            help='path to the weights of the ffdnet', required=True)
-  parser.add_argument("--suffix", type=str, default="", \
-            help='suffix to add to output name')
-  parser.add_argument("--noise_sigma", type=float, default=25, \
-            help='noise level used on test set')
-  parser.add_argument("--dont_save_results", action='store_true', \
-            help="don't save output images")
-  parser.add_argument("--no_gpu", action='store_true', \
-            help="run model on CPU")
-  parser.add_argument("--output", type=str, default="", \
-            help='path to the output folder', required=True)
-  parser.add_argument("--gray", action='store_true', \
-            help='test on gray images')
+  parser.add_argument("input", type=str, nargs="+", \
+            help='input image(s)')
+  parser.add_argument("weight_path", type=str, \
+            help='path to the weights of the FFDNet')
+  parser.add_argument("output", type=str, \
+            help='path to the output folder')
+  parser.add_argument("--device", choices={'cuda', 'cpu'}, default='cuda',\
+            help="model device [default: cuda]")
   parser.set_defaults(func=main)
 
 def main(args):
@@ -58,15 +45,15 @@ def main(args):
   Args:
     args: command line arguments
   """
-  # Normalize noises ot [0, 1]
-  args.noise_sigma /= 255.
-  # String to bool
-  args.add_noise = (args.add_noise.lower() == 'true')
 
-  # use CUDA?
-  args.cuda = not args.no_gpu and torch.cuda.is_available()
+  # device
+  if args.device == 'cuda' and not torch.cuda.is_available():
+    args.device = 'cpu'
+    print('No GPU available')
 
-  #args.cuda = False
+  # output
+  if args.output[-1] == '/' and len(args.output) > 1:
+    args.output = args.output[:-1]
 
   print("\n### Testing FFDNet model ###")
   print("> Parameters:")
@@ -85,83 +72,72 @@ def test_ffdnet(args):
   The images the method provides are:
   * wiener_denoised: image produced by applying `estimate_noise` as denoising algorithm on the green channel
   * prediction_denoised: image produced by denoising the original image using the estimated noise of the FFNDNet
-  * wiener_noise: noise pattern detected by `estimate_noise`
-  * prediction_noise: noise pattern predicted by the FFDNet
 
   Args:
     args: command line arguments
   """
 
-  device = torch.device('cuda' if args.cuda else 'cpu')
+  for image_path in args.input:
+    if not os.path.isfile(image_path):
+      print('{} is not a file'.format(image_path))
+      continue
 
-  assert os.path.isfile(args.input), 'The input file does not exists'
+    image = Image.open(image_path)
+    image = np.asarray(image).astype('float32')
 
-  if args.output[-1] == '/' and len(args.output) > 1:
-    args.output = args.output[:-1]
+    if image.ndim == 3 and image.shape[2] >= 2:
+      image_green = image[:, :, 1]
+    elif image.ndim == 3 and image.shape[2] == 1:
+      image_green = image[:, :, 0]
+    elif image.ndim == 2:
+      image_green = image
+    else:
+      print('{} is not a image [ndim 2 or 3]'.format(image_path))
+      continue
 
+    # normalize
+    image_green = image_green/255
+    image_green = np.expand_dims(image_green, 0)
 
-  image = cv2.imread(args.input)
-  image_green = image[:, :, 1]
+    ## Load weigths
+    in_ch = 1
+    device_ids = [0]
+    net = FFDNet(num_input_channels = in_ch)
+    net.apply(weights_init_kaiming)
+    model = nn.DataParallel(net, device_ids = device_ids).to(args.device)
+    resumef = args.weight_path
+    checkpoint = torch.load(resumef, map_location=torch.device(args.device))
+    model.load_state_dict(checkpoint)
 
-  # Set the image equal to the cropped one
-  image_green = image_green
-  image_green = image_green/256
-  image_green = np.expand_dims(image_green, 0)
+    # estimate noise
+    wiener_denoised, stdn = estimate_noise([image_green], wiener_kernel_size=(5, 5))
+    wiener_denoised = torch.as_tensor(wiener_denoised, dtype=torch.float)
+    wiener_denoised = Variable(wiener_denoised.to(args.device))
 
-  ## Load weigths
-  in_ch = 1
-  device_ids = [0]
-  net = FFDNet(num_input_channels = in_ch)
-  net.apply(weights_init_kaiming)
-  model = nn.DataParallel(net, device_ids = device_ids).to(device)
-  resumef = args.weight_path
-  checkpoint = torch.load(resumef, map_location=torch.device(device))
-  model.load_state_dict(checkpoint)
+    # noise image
+    imgn = torch.as_tensor(np.asarray([image_green]))
+    imgn = Variable(imgn.to(args.device))
 
-  # estimate noise
-  filtered, stdn = estimate_noise([image_green], wiener_kernel_size=(5, 5))
-  filtered = torch.as_tensor(filtered, dtype=torch.float)
-  filtered = Variable(filtered.to(device))
+    # standard deviation
+    stdn = Variable(torch.FloatTensor(stdn).to(args.device))
 
-  # noise image
-  imgn = torch.as_tensor(np.asarray([image_green]))
-  imgn = Variable(imgn.to(device))
+    # noise
+    noise = torch.clamp((imgn - wiener_denoised), 0., 1.)
 
-  # standard deviation
-  stdn = Variable(torch.FloatTensor(stdn).to(device))
+    # prediction
+    model.eval()
+    prediction = model(imgn, stdn)
 
-  # noise
-  noise = torch.clamp((imgn - filtered), 0., 1.)
-  noise = Variable(noise.to(device))
+    # loss function
+    criterion = init_loss().to(args.device)
+    loss = compute_loss(criterion, prediction, noise, imgn)
+    print('Loss value {}: {}'.format(image_path, loss.item()))
 
-  # prediction
-  model.eval()
-  prediction = model(imgn, stdn)
-  prediction = prediction.to(device)
-  filtered = filtered.to(device)
+    image_name = os.path.splitext(os.path.basename(image_path))[0]
 
-  denoised_wiener = image[:, :, :]
-  denoised_wiener[:, : , 1] = filtered
+    # save images
+    wiener_denoised = Image.fromarray(wiener_denoised.detach().squeeze().numpy(), 'L')
+    wiener_denoised.save('{}/{}_wiener_denoised.jpg'.format(args.output, image_name))
 
-  denoised_ffdnet = image[:, :, :]
-  denoised_ffdnet[:, : , 1] = imgn - prediction.detach()
-
-  if args.gray:
-    denoised_wiener = cv2.cvtColor(denoised_wiener, cv2.COLOR_BGR2GRAY)
-    denoised_ffdnet = cv2.cvtColor(denoised_ffdnet, cv2.COLOR_BGR2GRAY)
-    cmap = 'gray'
-  else:
-    cmap = None
-
-  matplotlib.image.imsave('{}/wiener_denoised.jpg'.format(args.output), denoised_wiener, cmap=cmap)
-  matplotlib.image.imsave('{}/prediction_denoised.jpg'.format(args.output), denoised_ffdnet, cmap=cmap)
-
-  print('Wiener filter noise: ', np.min(np.asarray(noise.detach())), np.max(np.asarray(noise.detach())))
-  print('FFDNET prediction noise', np.min(np.asarray(prediction.detach())), np.max(np.asarray(prediction.detach())))
-
-  matplotlib.image.imsave('{}/wiener_noise.jpg'.format(args.output), noise.squeeze().detach())
-  matplotlib.image.imsave('{}/prediction_noise.jpg'.format(args.output), prediction.squeeze().detach())
-
-  criterion = init_loss().to(device)
-  loss = compute_loss(criterion, prediction, noise, imgn).to(device)
-  print('Loss function', loss.item())
+    prediction_denoised = Image.fromarray((imgn - prediction).detach().squeeze().numpy(), 'L')
+    prediction_denoised.save('{}/{}_prediction_denoised.jpg'.format(args.output, image_name))

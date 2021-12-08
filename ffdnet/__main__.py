@@ -15,6 +15,7 @@ def get_args():
   subparsers = parser.add_subparsers(help='sub-commands help')
   processors.train_ffdnet.configure_subparsers(subparsers)
   processors.test_ffdnet.configure_subparsers(subparsers)
+  processors.prnu_ffdnet.configure_subparsers(subparsers)
   processors.prepare_patches.configure_subparsers(subparsers)
   processors.prepare_vision_dataset.configure_subparsers(subparsers)
 
