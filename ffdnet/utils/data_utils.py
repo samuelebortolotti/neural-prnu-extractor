@@ -154,3 +154,19 @@ def get_git_revision_short_hash():
   r"""Returns the current Git commit.
   """
   return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
+
+def remove_dataparallel_wrapper(state_dict):
+  r"""Converts a DataParallel model to a normal one by removing the "module."
+  wrapper in the module dictionary
+
+  Args:
+    state_dict: a torch.nn.DataParallel state dictionary
+  """
+  from collections import OrderedDict
+
+  new_state_dict = OrderedDict()
+  for k, vl in state_dict.items():
+    name = k[7:] # remove 'module.' of DataParallel
+    new_state_dict[name] = vl
+
+  return new_state_dict

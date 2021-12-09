@@ -15,9 +15,11 @@ import numpy as np
 import torch
 import torch.nn as nn
 from PIL import Image
+from skimage import exposure
 from torch.autograd import Variable
 from ffdnet.models import FFDNet
 from ffdnet.utils.train_utils import weights_init_kaiming, estimate_noise, compute_loss, init_loss
+from ffdnet.utils.data_utils import remove_dataparallel_wrapper
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -55,6 +57,9 @@ def main(args):
   if args.output[-1] == '/' and len(args.output) > 1:
     args.output = args.output[:-1]
 
+  if not os.path.isdir(args.output):
+    os.mkdir(args.output)
+
   print("\n### Testing FFDNet model ###")
   print("> Parameters:")
   for p, v in zip(args.__dict__.keys(), args.__dict__.values()):
@@ -82,9 +87,13 @@ def test_ffdnet(args):
   device_ids = [0]
   net = FFDNet(num_input_channels = in_ch)
   net.apply(weights_init_kaiming)
-  model = nn.DataParallel(net, device_ids = device_ids).to(args.device)
   resumef = args.weight_path
   checkpoint = torch.load(resumef, map_location=torch.device(args.device))
+  if args.device == 'cuda':
+    model = nn.DataParallel(net, device_ids = device_ids).to(args.device)
+  else:
+    checkpoint = remove_dataparallel_wrapper(checkpoint)
+    model = net
   model.load_state_dict(checkpoint)
 
   for image_path in args.input:
@@ -93,7 +102,7 @@ def test_ffdnet(args):
       continue
 
     image = Image.open(image_path)
-    image = np.asarray(image)
+    image = np.asarray(image, dtype=np.float32)
 
     if image.ndim == 3 and image.shape[2] >= 2:
       image_green = image[:, :, 1]
@@ -140,8 +149,39 @@ def test_ffdnet(args):
     prediction_denoised = np.uint8(prediction_denoised*255)
 
     # save images
-    wiener_denoised = Image.fromarray(wiener_denoised, 'L')
-    wiener_denoised.save('{}/{}_wiener_denoised.jpg'.format(args.output, image_name))
+    folder_name = './{}/{}'.format(args.output, image_name)
 
-    prediction_denoised = Image.fromarray(prediction_denoised, 'L')
-    prediction_denoised.save('{}/{}_prediction_denoised.jpg'.format(args.output, image_name))
+    if not os.path.isdir(folder_name):
+      os.mkdir(folder_name)
+
+    image_green = np.uint8(image_green.squeeze()*255)
+    image_green_saved = Image.fromarray(image_green, 'L')
+    image_green_saved.save('{}/{}_original.jpg'.format(folder_name, image_name))
+
+    wiener_denoised_img = Image.fromarray(wiener_denoised, 'L')
+    wiener_denoised_img.save('{}/{}_wiener_denoised.jpg'.format(folder_name, image_name))
+
+    prediction_denoised_img = Image.fromarray(prediction_denoised, 'L')
+    prediction_denoised_img.save('{}/{}_prediction_denoised.jpg'.format(folder_name, image_name))
+
+    # original noise
+    noise = noise.cpu().detach().squeeze().numpy()
+    noise_img = np.uint8(noise * 255)
+    noise_img = Image.fromarray(noise_img, 'L')
+    noise_img.save('{}/{}_original_wiener_noise.jpg'.format(folder_name, image_name))
+
+    prediction = torch.clamp(prediction, 0., 1.).cpu().detach().squeeze().numpy()
+    prediction_img = np.uint8(prediction * 255)
+    prediction_img = Image.fromarray(prediction_img, 'L')
+    prediction_img.save('{}/{}_original_prediction_noise.jpg'.format(folder_name, image_name))
+
+    # equalized
+    noise_img = exposure.equalize_hist(noise)
+    noise_img = np.uint8(noise_img * 255)
+    noise_img = Image.fromarray(noise_img, 'L')
+    noise_img.save('{}/{}_equalized_wiener_noise.jpg'.format(folder_name, image_name))
+
+    prediction_img = exposure.equalize_hist(prediction)
+    prediction_img = np.uint8(prediction_img * 255)
+    prediction_img = Image.fromarray(prediction_img, 'L')
+    prediction_img.save('{}/{}_equalized_prediction_noise.jpg'.format(folder_name, image_name))

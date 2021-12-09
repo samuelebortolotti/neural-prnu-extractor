@@ -12,6 +12,9 @@ TRAIN_FLAGS := --filter wiener --gray --traindbf datasets/train_gray.h5 --valdbf
 # ======= TEST  =========
 TEST := -m ffdnet test
 TEST_FLAGS := images/lena.jpg weigths/best.pth ./images --device cuda
+# ======= PRNU  =========
+PNRU := -m ffdnet prnu
+PRNU_FLAGS := ../dataset_test_prnu/ experiments/wiener_1.8.1/best.pth --gray --output ../test2 --cut_dim 256 256 3
 # ======= DOC   =========
 AUTHORS := --author "Matias Tassano, Simone Alghisi, Samuele Bortolotti, Massimo Rizzoli" 
 VERSION :=-r 0.1 
@@ -73,7 +76,7 @@ OPEN := xdg-open
 SED := sed
 	
 # RULES
-.PHONY: help env install install-mmlab install-dev train test doc doc-layout
+.PHONY: help env install install-mmlab install-dev train test prnu doc doc-layout
 
 help:
 	@$(ECHO) '$(YELLOW)Makefile help$(NONE)'
@@ -86,7 +89,8 @@ help:
 	* doc 			: generates the documentation (requires an existing documentation layout)\n \
 	* open-doc 		: opens the documentation\n \
 	* train 		: train the FFDNet\n \
-	* test 		: test the FFDNet"
+	* test 		: test the FFDNet\n \
+	* prnu 		: test the FFDNet PRNU"
 
 env:
 	@$(ECHO) '$(GREEN)Creating the virtual environment..$(NONE)'
@@ -130,11 +134,16 @@ open-doc:
 	@$(ECHO) '$(BLUE)Done$(NONE)'
 
 train:
-	@$(ECHO) '$(BLUE)Training the FFDNET..$(NONE)'
+	@$(ECHO) '$(BLUE)Training the FFDNet..$(NONE)'
 	@$(PYTHON) $(PYFLAGS) $(TRAIN) $(TRAIN_FLAGS)
 	@$(ECHO) '$(BLUE)Done$(NONE)'
 
 test:
-	@$(ECHO) '$(BLUE)Testing the FFDNET..$(NONE)'
+	@$(ECHO) '$(BLUE)Testing the FFDNet..$(NONE)'
 	@$(PYTHON) $(PYFLAGS) $(TEST) $(TEST_FLAGS)
+	@$(ECHO) '$(BLUE)Done$(NONE)'
+
+prnu:
+	@$(ECHO) '$(BLUE)Testing the FFDNet PRNU..$(NONE)'
+	@$(PYTHON) $(PYFLAGS) $(PRNU) $(PRNU_FLAGS)
 	@$(ECHO) '$(BLUE)Done$(NONE)'

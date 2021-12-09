@@ -4,7 +4,8 @@ import torch
 import torch.nn as nn
 from PIL import Image
 from ffdnet.models import FFDNet
-from ffdnet.utils.train_utils import weights_init_kaiming, estimate_noise, compute_loss, init_loss
+from ffdnet.utils.train_utils import weights_init_kaiming
+from ffdnet.utils.data_utils import remove_dataparallel_wrapper
 from prnu import prnu_utils
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
@@ -84,9 +85,13 @@ def prnu_ffdnet(args):
   device_ids = [0]
   net = FFDNet(num_input_channels = in_ch)
   net.apply(weights_init_kaiming)
-  model = nn.DataParallel(net, device_ids = device_ids).to(args.device)
   resumef = args.weight_path
   checkpoint = torch.load(resumef, map_location=torch.device(args.device))
+  if args.device == 'cuda':
+    model = nn.DataParallel(net, device_ids = device_ids)
+  else:
+    checkpoint = remove_dataparallel_wrapper(checkpoint)
+    model = net
   model.load_state_dict(checkpoint)
 
   # extract prnu
