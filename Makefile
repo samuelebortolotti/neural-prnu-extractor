@@ -13,7 +13,7 @@ TRAIN_FLAGS := --filter wiener --gray --traindbf datasets/train_gray.h5 --valdbf
 TEST := -m ffdnet test
 TEST_FLAGS := images/lena.jpg weigths/best.pth ./images --device cuda
 # ======= PRNU  =========
-PNRU := -m ffdnet prnu
+PRNU := -m ffdnet prnu
 PRNU_FLAGS := ../dataset_test_prnu/ experiments/wiener_1.8.1/best.pth --gray --output ../test2 --cut_dim 256 256 3
 # ======= DOC   =========
 AUTHORS := --author "Matias Tassano, Simone Alghisi, Samuele Bortolotti, Massimo Rizzoli" 
