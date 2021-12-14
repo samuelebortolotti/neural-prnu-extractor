@@ -1,5 +1,5 @@
 """ dataset.py
-Dataset related functions
+Module which contains dataset related functions
 
 Copyright (C) 2018, Matias Tassano <matias.tassano@parisdescartes.fr>
 

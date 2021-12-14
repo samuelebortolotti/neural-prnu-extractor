@@ -1,6 +1,6 @@
-"""
-Denoise an image with the FFDNet denoising method
-  
+""" test_ffdnet.py
+Module to test the FFDNet on a test dataset
+
 Copyright (C) 2018, Matias Tassano <matias.tassano@parisdescartes.fr>
 
 This program is free software: you can use, modify and/or
@@ -9,6 +9,12 @@ License as published by the Free Software Foundation, either
 version 3 of the License, or (at your option) any later
 version. You should have received a copy of this license along
 this program. If not, see <http://www.gnu.org/licenses/>.
+
+Later authors:
+- Simone Alghisi (simone.alghisi-1@studenti.unitn.it)
+- Samuele Bortolotti (samuele.bortolotti@studenti.unitn.it)
+- Massimo Rizzoli (massimo.rizzoli@studenti.unitn.it)
+
 """
 import os
 import numpy as np
@@ -29,6 +35,15 @@ def configure_subparsers(subparsers):
   
   Args:
     subparsers: subparser
+  """
+  """
+  Subparser parameters:
+
+  Args:
+    input: path to the input image or images if they are more than one
+    weight_path: path to the weight file of the FFDNet
+    output: path to the output folder
+    device: device where to load the network and the images [device: cuda]
   """
   parser = subparsers.add_parser('test', help='Test the FFDNet')
   parser.add_argument("input", type=str, nargs="+", \
@@ -71,12 +86,20 @@ def main(args):
 def test_ffdnet(args):
   r"""Denoises an input image with FFDNet
 
-  The function loads the weigths of the FFDNet and then produces the following images 
-  in the specified `args.output` folder.
+  The function loads the weigths of the FFDNet and then produces a folder for each image
+  of the training set. Such directory will contain: [name refers to the test image name]
+  * [name]_original.jpg: the original image of the dataset
+  * [name]_wiener_denoised.jpg: image denoised using the wiener filter 
+  * [name]_prediction_denoised.jpg: image denoised using the FFDNet
+  * [name]_original_wiener_noise.jpg: image depicting the noise detected by the wiener filter
+  * [name]_original_prediction_noise.jpg: image depicting the noise detected by the FFDNet
+  * [name]_equalized_wiener_noise.jpg: image depicting the noise detected by the wiener filter after
+  applying histogram equalization
+  * [name]_equalized_prediction_noise.jpg: image depicting the noise detected by the FFDNet
 
-  The images the method provides are:
-  * wiener_denoised: image produced by applying `estimate_noise` as denoising algorithm on the green channel
-  * prediction_denoised: image produced by denoising the original image using the estimated noise of the FFNDNet
+  The denoising method employed are:
+  * wiener filtering: by employing `estimate_noise` as denoising algorithm on the green channel
+  * combination of AWGN: by employing the original FFDNet approach described in the paper of Kai Zhang et al.
 
   Args:
     args: command line arguments
@@ -96,7 +119,9 @@ def test_ffdnet(args):
     model = net
   model.load_state_dict(checkpoint)
 
+  # loop over all the images in the input folder
   for image_path in args.input:
+    # skip the images which are not a file
     if not os.path.isfile(image_path):
       print('{} is not a file'.format(image_path))
       continue

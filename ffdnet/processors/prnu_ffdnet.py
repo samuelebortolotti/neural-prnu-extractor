@@ -1,3 +1,21 @@
+""" prnu_ffdnet.py
+Module to test the FFDNet on the PRNU extraction
+
+Copyright (C) 2018, Matias Tassano <matias.tassano@parisdescartes.fr>
+
+This program is free software: you can use, modify and/or
+redistribute it under the terms of the GNU General Public
+License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later
+version. You should have received a copy of this license along
+this program. If not, see <http://www.gnu.org/licenses/>.
+
+Later authors:
+- Simone Alghisi (simone.alghisi-1@studenti.unitn.it)
+- Samuele Bortolotti (samuele.bortolotti@studenti.unitn.it)
+- Massimo Rizzoli (massimo.rizzoli@studenti.unitn.it)
+"""
+
 import os
 import numpy as np
 import torch
@@ -17,12 +35,26 @@ def configure_subparsers(subparsers):
   Args:
     subparsers: subparser
   """
+
+  """
+  Subparser parameters:
+
+  Args:
+    dataset: path to the dataset directory which should contain the nat (natural) and the flat folders
+    weight_path: path to the weights of the FFDNet
+    sigma: noise level to use on the test set [defalt: None]
+    mean_sigma: whether to compute teh average sigma [default: False]
+    output: path to the output folder, if present the function will save the image produced [default: None]
+    cut_dim: size of the cut for estimating the PRNU out of the images. [default: 512 512 3]
+    device: either cuda or cpu, where to load the FFDNet and the image it has to process [default: cuda]
+    gray: whether the test images are gray or not [default: False]
+  """
   parser = subparsers.add_parser('prnu', help='Test the FFDNet PRNU')
   parser.add_argument("dataset", type=str, \
             help='path to the dataset directory which should contain nat and flat folders')
   parser.add_argument("weight_path", type=str, \
             help='path to the weights of the FFDNet')
-  parser.add_argument("--sigma", type=float, default=None, \
+  parser.add_argument("--sigma", type=float, default=None \ 
             help='noise level used on dataset [default: None]')
   parser.add_argument("--mean_sigma", action='store_true', \
             help='compute the average sigma [default: False]')
@@ -82,6 +114,7 @@ def prnu_ffdnet(args):
   if args.gray:
     in_ch = 1
 
+  # load the neural network
   device_ids = [0]
   net = FFDNet(num_input_channels = in_ch)
   net.apply(weights_init_kaiming)

@@ -1,5 +1,5 @@
-"""
-Denoise an image with the FFDNet denoising method
+""" prepare_patches.py
+Construction of the training and validation databases
 
 Copyright (C) 2018, Matias Tassano <matias.tassano@parisdescartes.fr>
 
@@ -9,6 +9,12 @@ License as published by the Free Software Foundation, either
 version 3 of the License, or (at your option) any later
 version. You should have received a copy of this license along
 this program. If not, see <http://www.gnu.org/licenses/>.
+
+Later authors:
+- Simone Alghisi (simone.alghisi-1@studenti.unitn.it)
+- Samuele Bortolotti (samuele.bortolotti@studenti.unitn.it)
+- Massimo Rizzoli (massimo.rizzoli@studenti.unitn.it)
+
 """
 from typing import DefaultDict
 from ffdnet.train import train
@@ -48,7 +54,7 @@ def configure_subparsers(subparsers):
             help="Noise training interval [default: 0, 75]")
   parser.add_argument("--val_noiseL", type=float, default=25, \
             help="noise level used on validation set [default: 25]")
-  parser.add_argument("--filter", "-f", choices=['default', 'wiener', 'wavelet'], default='default',\
+  parser.add_argument("--filter", "-f", choices=['default', 'wiener'], default='default',\
             help="Apply wiener/wavelet filter or default (AWGN artifical noise) to extract noise from dataset [default: default]")
   parser.add_argument("--traindbf", "-tf", type=Path, default="datasets/train_rgb.h5",
 						help="h5py file containing the images for training the net [default: 'datasets/train_rgb.h5']")
