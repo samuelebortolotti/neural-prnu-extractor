@@ -1,5 +1,5 @@
-""" prepare_patches.py
-Construction of the training and validation databases
+""" train_ffdnet
+Module to train the FFDNet
 
 Copyright (C) 2018, Matias Tassano <matias.tassano@parisdescartes.fr>
 
@@ -55,17 +55,13 @@ def configure_subparsers(subparsers):
   parser.add_argument("--val_noiseL", type=float, default=25, \
             help="noise level used on validation set [default: 25]")
   parser.add_argument("--filter", "-f", choices=['default', 'wiener'], default='default',\
-            help="Apply wiener/wavelet filter or default (AWGN artifical noise) to extract noise from dataset [default: default]")
+            help="Apply wiener filter or default (AWGN artifical noise) to extract noise from dataset [default: default]")
   parser.add_argument("--traindbf", "-tf", type=Path, default="datasets/train_rgb.h5",
 						help="h5py file containing the images for training the net [default: 'datasets/train_rgb.h5']")
   parser.add_argument("--valdbf", "-vf", type=Path, default="datasets/val_rgb.h5",
 						help="h5py file containing the images for validating the net [default: 'datasets/val_rgb.h5']")
   parser.add_argument("--gpu_fraction", "-gf", type=float, default=1.0, 	\
 					  help="Set the gpu to use only a fraction of the total memory [default: 1.0]")
-  parser.add_argument("--wavelet_convert2ycbcr", action="store_true", \
-					  help="Apply the conversion from RGB to ycbcr will be if the wavelet denoising method is selected [default: False]")
-  parser.add_argument("--wavelet_method", "-wavemet", type=str, default='BayesShrink', 	\
-					  help="Apply the BayesShrink or VisuShrink method if the wavelet denoising method is selected [default: BayesShrink]")
   parser.set_defaults(func=main)
 
 def main(args):
