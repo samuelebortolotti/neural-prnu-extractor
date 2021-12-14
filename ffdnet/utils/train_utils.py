@@ -40,7 +40,8 @@ def weights_init_kaiming(lyr):
   
 
 def load_dataset_and_dataloader(args):
-  r"""Load the datasets and the dataloaders (for both training and validation) according to what has been specified through the command line arguments
+  r"""Load the datasets and the dataloaders (for both training and validation)
+  according to what has been specified through the command line arguments
   Default:
     - Dataset train shuffle = True
     - Dataset validation shuffle = False
@@ -50,8 +51,10 @@ def load_dataset_and_dataloader(args):
   Args:
     args: command line arguments (use traindbf, valdbf, gray, batch_size)
   Returns:
-    datasets: a dictionary containing the dataset, for both training and validation, respectively under the key train and val
-    dataloaders: a dictionary containing the dataloaders, for both training and validation, respectively under the key train and val
+    datasets: a dictionary containing the dataset, for both training and validation, 
+    respectively under the key train and val
+    dataloaders: a dictionary containing the dataloaders, for both training and validation, 
+    respectively under the key train and val
   """
 
   print('> Loading dataset ...')
@@ -69,9 +72,10 @@ def load_dataset_and_dataloader(args):
 
 def create_model(args):
   r"""Creates the model by initializing the input channel according to the args.gray flag.
-  If args.gray is specified, the FFDNET will have 1 as number of input channels, otherwise it will be set to 3 (RGB)
-  Moreover, after the Neural Network is initialized, the weights are set using the weights_init_kaiming function.
-  Finally the model is moved to GPU and if possible parallelized using the number of specified gpu devices
+  If args.gray is specified, the FFDNET will have 1 as number of input channels, otherwise 
+  it will be set to 3 (RGB). Moreover, after the Neural Network is initialized, the weights 
+  are set using the weights_init_kaiming function. Finally the model is moved to GPU and if 
+  possible parallelized using the number of specified gpu devices
 
   Args:
     args: command line arguments (use gray)
@@ -104,7 +108,8 @@ def init_loss():
 
 def resume_training(args, model, optimizer):
   r"""Resumes the training if the corresponding flag is specified.
-  If the resume_training flag is set to true, the function tries to recover, from the checkpoint specified, the number of epoch, training and validation parameters.
+  If the resume_training flag is set to true, the function tries to recover, from the 
+  checkpoint specified, the number of epoch, training and validation parameters.
   If the resume_training flag is set to false, the parameters are set to the default ones
 
   Args:
@@ -165,11 +170,13 @@ def create_input_variables(args, data):
     - wiener:
       the original image is denoised by appling the Wiener filter
     - wavelet:
-      the original image is denoised by appling either Bayesian Shrink or Visu Shrink according to the specified parameter
-    - if such flag is not specified, by default the approach proposed in "FFDNet: Toward a Fast and Flexible Solution for CNN based Image Denoising" is applied
+      the original image is denoised by appling either Bayesian Shrink or Visu Shrink 
+      according to the specified parameter
+    - if such flag is not specified, by default the approach proposed in "FFDNet: 
+      Toward a Fast and Flexible Solution for CNN based Image Denoising" is applied
   
   Args:
-    args: command line arguments (use gray, experiment_name)
+    args: command line arguments (use gray, experiment_name, filter)
     data: image batch
 
   Returns:
@@ -179,26 +186,7 @@ def create_input_variables(args, data):
     stdn_var: noise standard deviations (noise treated as AWGN)
   """
 
-  if args.filter == 'wiener':
-    imgn = data
-    img, stdn = estimate_noise(imgn, wiener_kernel_size = (5, 5))
-    img = torch.as_tensor(img, dtype=torch.float)
-    stdn = torch.FloatTensor(stdn)
-    stdn = Variable(stdn.cuda())
-    img = Variable(img.cuda())
-    imgn = Variable(imgn.cuda())
-    noise = torch.clamp(imgn - img, 0., 1.)
-  elif args.filter == 'wavelet':
-    imgn = data
-    img, stdn = estimate_noise(imgn, method = Estimator.WAVELET, \
-      convert2ycbcr = args.wavelet_convert2ycbcr, wavelet_method = args.wavelet_method)
-    img = torch.as_tensor(img, dtype=torch.float)
-    stdn = torch.FloatTensor(stdn)
-    stdn = Variable(stdn.cuda())
-    img = Variable(img.cuda())
-    imgn = Variable(imgn.cuda())
-    noise = torch.clamp(imgn - img, 0., 1.)
-  else:
+  if args.filter == 'default':
     img = data
     noise = torch.zeros(img.size())
     stdn = np.random.uniform(args.noiseIntL[0], args.noiseIntL[1], size=noise.size()[0])
@@ -208,7 +196,20 @@ def create_input_variables(args, data):
     imgn = img + noise
     img = Variable(img.cuda())
     imgn = Variable(imgn.cuda())
-  
+  else:
+    imgn = data
+    if args.filter == 'wiener':
+      img, stdn = estimate_noise(imgn, wiener_kernel_size = (5, 5))
+    # TODO... do we want to use the wavelet implementation from the PRNU extractor?
+    elif args.filter == 'wavelet':
+      img, stdn = estimate_noise(imgn, method = Estimator.WAVELET, \
+      convert2ycbcr = args.wavelet_convert2ycbcr, wavelet_method = args.wavelet_method)
+    img = torch.as_tensor(img, dtype=torch.float)
+    stdn = torch.FloatTensor(stdn)
+    stdn = Variable(stdn.cuda())
+    img = Variable(img.cuda())
+    imgn = Variable(imgn.cuda())
+    noise = torch.clamp(imgn - img, 0., 1.)
   stdn_var = Variable(torch.cuda.FloatTensor(stdn))
   noise = Variable(noise.cuda())
 
@@ -243,7 +244,8 @@ def get_lr(optimizer):
 
 def estimate_noise(image_list, method = Estimator.WIENER, wiener_kernel_size=(5, 5), \
   convert2ycbcr=False, wavelet_method='BayesShrink'):
-  r"""Estimate noise using the wiener filter or the Wavelet denoising (Bayesian Shrink or VisuShrink) according to what has been specified
+  r"""Estimate noise using the wiener filter or the Wavelet denoising (Bayesian Shrink 
+  or VisuShrink) according to what has been specified
 
   Args:
     image_list: list of noisy images
