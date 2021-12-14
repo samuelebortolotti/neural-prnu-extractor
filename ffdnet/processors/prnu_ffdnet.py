@@ -54,7 +54,7 @@ def configure_subparsers(subparsers):
             help='path to the dataset directory which should contain nat and flat folders')
   parser.add_argument("weight_path", type=str, \
             help='path to the weights of the FFDNet')
-  parser.add_argument("--sigma", type=float, default=None \ 
+  parser.add_argument("--sigma", type=float, default=None, \
             help='noise level used on dataset [default: None]')
   parser.add_argument("--mean_sigma", action='store_true', \
             help='compute the average sigma [default: False]')
