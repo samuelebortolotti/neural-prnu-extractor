@@ -11,10 +11,10 @@ version. You should have received a copy of this license along
 this program. If not, see <http://www.gnu.org/licenses/>.
 
 Later authors:
+
 - Simone Alghisi (simone.alghisi-1@studenti.unitn.it)
 - Samuele Bortolotti (samuele.bortolotti@studenti.unitn.it)
 - Massimo Rizzoli (massimo.rizzoli@studenti.unitn.it)
-
 """
 from typing_extensions import Required
 from ffdnet.dataset import prepare_data

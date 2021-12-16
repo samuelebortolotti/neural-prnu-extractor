@@ -11,6 +11,7 @@ version. You should have received a copy of this license along
 this program. If not, see <http://www.gnu.org/licenses/>.
 
 Later authors:
+
 - Simone Alghisi (simone.alghisi-1@studenti.unitn.it)
 - Samuele Bortolotti (samuele.bortolotti@studenti.unitn.it)
 - Massimo Rizzoli (massimo.rizzoli@studenti.unitn.it)
@@ -30,6 +31,7 @@ import os
 
 class Estimator(Enum):
   r"""Noise estimator class
+  It is basically an enumerator, used to distinguish the denoising method to employ
   """
   # Wiener enum value
   WIENER = 0
@@ -58,10 +60,11 @@ def load_dataset_and_dataloader(args):
   r"""Load the datasets and the dataloaders (for both training and validation)
   according to what has been specified through the command line arguments
   Default:
-    - Dataset train shuffle = True
-    - Dataset validation shuffle = False
-    - DataLoader train shuffle = True
-    - DataLoader validation shuffle = False
+
+  - Dataset train shuffle = True
+  - Dataset validation shuffle = False
+  - DataLoader train shuffle = True
+  - DataLoader validation shuffle = False
 
   Args:
     args: command line arguments (use traindbf, valdbf, gray, batch_size)

@@ -9,6 +9,12 @@ License as published by the Free Software Foundation, either
 version 3 of the License, or (at your option) any later
 version. You should have received a copy of this license along
 this program. If not, see <http://www.gnu.org/licenses/>.
+
+Later authors:
+
+- Simone Alghisi (simone.alghisi-1@studenti.unitn.it)
+- Samuele Bortolotti (samuele.bortolotti@studenti.unitn.it)
+- Massimo Rizzoli (massimo.rizzoli@studenti.unitn.it)
 """
 import os
 import os.path

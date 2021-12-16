@@ -11,6 +11,7 @@ version. You should have received a copy of this license along
 this program. If not, see <http://www.gnu.org/licenses/>.
 
 Later authors:
+
 - Simone Alghisi (simone.alghisi-1@studenti.unitn.it)
 - Samuele Bortolotti (samuele.bortolotti@studenti.unitn.it)
 - Massimo Rizzoli (massimo.rizzoli@studenti.unitn.it)
@@ -88,17 +89,26 @@ def test_ffdnet(args):
 
   The function loads the weigths of the FFDNet and then produces a folder for each image
   of the training set. Such directory will contain: [name refers to the test image name]
+
   * [name]_original.jpg: the original image of the dataset
+  
   * [name]_wiener_denoised.jpg: image denoised using the wiener filter 
+
   * [name]_prediction_denoised.jpg: image denoised using the FFDNet
+
   * [name]_original_wiener_noise.jpg: image depicting the noise detected by the wiener filter
+
   * [name]_original_prediction_noise.jpg: image depicting the noise detected by the FFDNet
+
   * [name]_equalized_wiener_noise.jpg: image depicting the noise detected by the wiener filter after
   applying histogram equalization
+  
   * [name]_equalized_prediction_noise.jpg: image depicting the noise detected by the FFDNet
 
   The denoising method employed are:
+
   * wiener filtering: by employing `estimate_noise` as denoising algorithm on the green channel
+
   * combination of AWGN: by employing the original FFDNet approach described in the paper of Kai Zhang et al.
 
   Args:

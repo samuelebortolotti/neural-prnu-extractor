@@ -1,8 +1,6 @@
 """ train.py
 Trains a FFDNet model
 
-## TODO to comment
-
 By default, the training starts with a learning rate equal to 1e-3 (--lr).
 Up until this point, the orthogonalization technique
 described in the FFDNet paper is performed (--no_orthog to set it off).
@@ -17,6 +15,7 @@ version. You should have received a copy of this license along
 this program. If not, see <http://www.gnu.org/licenses/>.
 
 Later authors:
+
 - Simone Alghisi (simone.alghisi-1@studenti.unitn.it)
 - Samuele Bortolotti (samuele.bortolotti@studenti.unitn.it)
 - Massimo Rizzoli (massimo.rizzoli@studenti.unitn.it)
@@ -43,15 +42,31 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 def train(args):
+  r"""
+  Main training function.
 
+  The arguments used by the function are:
+
+  # TODO
+
+  * gpu_fraction: if it is specified, it tries to set the upperbound GPU limit (only if set_process_memory_fraction is implemented), otherwise it only notifies the user
+
+  * experiment_name: the folder where to store the logs 
+
+  * lr: the learning rate where to start
+
+  * epochs: the total number of epochs to do
+
+  * save_every: after how many epocs to save a checkpoint
+  """
   try:
     torch.cuda.set_per_process_memory_fraction(args.gpu_fraction)
   except NameError:
-	  print('Torch version {} does not support torch.cuda.set_per_process_memory_fraction, no GPU memory limit will be set'.format(torch.__version__))
+    print('Torch version {} does not support torch.cuda.set_per_process_memory_fraction, no GPU memory limit will be set'.format(torch.__version__))
 
 	# Performs the main training loop
 
-	# Load dataset
+  # Load dataset
   datasets, dataloaders = load_dataset_and_dataloader(args)
 
 	# Init loggers

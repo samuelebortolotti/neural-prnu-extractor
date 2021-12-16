@@ -10,6 +10,7 @@ version. You should have received a copy of this license along
 this program. If not, see <http://www.gnu.org/licenses/>.
 
 Later authors:
+
 - Simone Alghisi (simone.alghisi-1@studenti.unitn.it)
 - Samuele Bortolotti (samuele.bortolotti@studenti.unitn.it)
 - Massimo Rizzoli (massimo.rizzoli@studenti.unitn.it)
@@ -56,7 +57,9 @@ def split_dataset(dataset_folder: str, destination_folder: str, train_frac: floa
             print("into {}...".format(destination_folder + '/test/' + image_path.split('/')[-1]))
             copyfile(image_path, destination_folder + '/test/' + image_path.split('/')[-1])
 
-def split_dataset_with_fixed_dimension(dataset_folder: str, destination_folder: str, train_frac: float = 0.70, total_train_size: int = None, total_val_size: int = None, copy=True):
+def split_dataset_with_fixed_dimension(dataset_folder: str, destination_folder: str, train_frac: float = 0.70, \
+  total_train_size: int = None, total_val_size: int = None, copy=True):
+
   image_partition = {}
   total_images = 0
   img_per_model = {}

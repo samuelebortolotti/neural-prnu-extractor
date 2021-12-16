@@ -11,6 +11,7 @@ version. You should have received a copy of this license along
 this program. If not, see <http://www.gnu.org/licenses/>.
 
 Later authors:
+
 - Simone Alghisi (simone.alghisi-1@studenti.unitn.it)
 - Samuele Bortolotti (samuele.bortolotti@studenti.unitn.it)
 - Massimo Rizzoli (massimo.rizzoli@studenti.unitn.it)
@@ -71,4 +72,4 @@ def main(args):
     total_train_size=args.total_train_size,
     total_val_size=args.total_val_size,
     copy=not args.move
-	)
+  )
