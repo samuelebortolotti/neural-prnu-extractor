@@ -23,8 +23,10 @@ colortheme:
 - default
 navigation:
 - horizontal
+logo:
+- unitn.pdf
 fontsize: 
-- 10pt
+- 10mm
 ---
 
 # How to generate it
