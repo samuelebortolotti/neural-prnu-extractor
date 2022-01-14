@@ -68,8 +68,6 @@ def prepare_data(data_path,
     total_samples: total number desired of patches 
     gray_mode: build the databases composed of grayscale patches
   """
-  # training database
-  print('> Training database')
   types = ('*.bmp', '*.png', '*.jpg')
   files = []
   for tp in types:

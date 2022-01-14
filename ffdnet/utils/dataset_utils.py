@@ -21,9 +21,19 @@ import random
 from shutil import copyfile, move
 from tqdm import tqdm
 
-def split_dataset_with_fixed_dimension(dataset_folder: str, destination_folder: str, train_frac: float = 0.70, \
-  total_train_size: int = None, total_val_size: int = None, copy=True):
 
+def split_dataset_with_fixed_dimension(dataset_folder: str, destination_folder: str, train_frac: float = 0.70, \
+  total_train_size: int = None, total_val_size: int = None, copy: bool = True):
+  r"""splits the VISION dataset into training and validation.
+  
+  Args:
+    dataset_folder: the original VISION dataset folder
+    destination_folder: the destination folder where training and validation sets will be created
+    train_frac: the fraction of elements for the training set (validation is obtained by 1-train_frac)
+    total_train_size: additional parameter to fix the number of total images in the training set
+    total_val_size: additional parameter to fix the number of total images in the validation set
+    copy: parameter to copy images instead of cutting them
+  """
   image_partition = {}
   total_images = 0
   if os.path.exists(dataset_folder):
@@ -73,3 +83,27 @@ def split_dataset_with_fixed_dimension(dataset_folder: str, destination_folder: 
             i += 1
             pbar.update(1)
           pbar.close()
+
+def rearrange_dataset_prnu(dataset_folder: str, destination_folder: str, copy: bool = True):
+  r"""Rearrange the VISION dataset into flat and nat images for prnu estimation.
+  
+  Args:
+    dataset_folder: the original VISION dataset folder
+    destination_folder: the destination folder where to rearrange the dataset for prnu estimation
+    copy: parameter to copy images instead of cutting them
+  """
+  if os.path.exists(dataset_folder):
+    if not os.path.exists(destination_folder):
+      os.mkdir(destination_folder)
+    for image_path in tqdm(Path(dataset_folder).iterdir(), desc='Rearranging VISION dataset for prnu estimation'):
+      image_name = str(image_path).split('/')[-1]
+      if image_name.split('.')[-1] in ['jpg']:
+        name_splits = image_name.split('_')
+        image_type = name_splits[2]
+        if not os.path.exists(destination_folder + '/' + image_type):
+          os.mkdir(destination_folder + '/' + image_type)
+        del name_splits[2]
+        if copy:
+          copyfile(image_path, destination_folder + '/' + image_type + '/' + "_".join(name_splits))
+        else:
+          move(image_path, destination_folder + '/' + image_type + '/' + "_".join(name_splits))

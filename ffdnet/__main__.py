@@ -35,6 +35,7 @@ def get_args():
   processors.prnu_ffdnet.configure_subparsers(subparsers)
   processors.prepare_patches.configure_subparsers(subparsers)
   processors.prepare_vision_dataset.configure_subparsers(subparsers)
+  processors.prepare_prnu_vision.configure_subparsers(subparsers)
 
   # parse arguments
   parsed_args = parser.parse_args()
