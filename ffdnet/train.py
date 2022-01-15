@@ -42,22 +42,25 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 def train(args):
-  r"""
-  Main training function.
+  r"""Main training function.
 
-  The arguments used by the function are:
-
-  # TODO
-
-  * gpu_fraction: if it is specified, it tries to set the upperbound GPU limit (only if set_process_memory_fraction is implemented), otherwise it only notifies the user
-
-  * experiment_name: the folder where to store the logs 
-
-  * lr: the learning rate where to start
-
-  * epochs: the total number of epochs to do
-
-  * save_every: after how many epocs to save a checkpoint
+  Args:
+    gray: train grayscale image denoising instead of RGB 
+    experiment_name: path of log directory inside of the folder experiments 
+    batch_size: training batch size 
+    val_batch_size: validation batch size 
+    epochs: number of total training epochs 
+    resume_training: resume training from a previous checkpoint 
+    lr: Initial learning rate
+    no_orthog: don't perform orthogonalization as regularization 
+    save_every: number of training steps to log psnr and perform
+    save_every_epochs: number of training epochs to save state 
+    noiseIntL: noise training interval 
+    val_noiseL: noise level used on validation set 
+    filter: apply wiener filter or default (AWGN artifical noise) to extract noise from dataset 
+    traindbf: h5py file containing the images for training the net 
+    valdbf: h5py file containing the images for validating the net 
+    gpu_fraction: if it is specified, it tries to set the upperbound GPU limit (only if set_process_memory_fraction is implemented), otherwise it only notifies the user
   """
   try:
     torch.cuda.set_per_process_memory_fraction(args.gpu_fraction)

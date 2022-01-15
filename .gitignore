@@ -25,3 +25,9 @@ images
 
 # presentation slides
 presentation/main.pdf
+
+# vscode
+.vscode
+
+#jupyter notebook
+presentation/.ipynb_checkpoints

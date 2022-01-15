@@ -21,8 +21,9 @@ pdfTeX 3.141592653-2.6-1.40.22 (TeX Live 2021)
 To generate the beamer presentation run the following command:
 
 ```sh
-pandoc main.md --include-in-header=./preamble.tex \
--t beamer -o main.pdf
+pandoc main.md --include-in-header=preamble.tex \ 
+--citeproc --bibliography=bibliography.bib -t \
+beamer -o main.pdf
 ```
 
 Once the slides have been generated, you can open them with your favourite document viewer (for instance [Zathura](https://pwmt.org/projects/zathura/installation/))
