@@ -8,9 +8,9 @@ aspectratio:
 institute:
 - University of Trento
 author:
-- Alghisi Simone
-- Bortolotti Samuele
-- Rizzoli Massimo
+- \href{https://github.com/Simone-Alghisi}{Simone Alghisi}
+- \href{https://github.com/samuelebortolotti}{Samuele Bortolotti}
+- \href{https://github.com/massimo-rizzoli}{Massimo Rizzoli}
 date:
 - \today
 lang:
@@ -62,7 +62,6 @@ Train a model to extract the PRNU noise for device identification.
 
 :::: column
 
-<!--TODO... it would be a better idea to add labels and possibly change the colors-->
 ![ ](imgs/learning_rate.pdf)
 
 ::::
@@ -94,11 +93,48 @@ $$\mathcal{L}_{res}(\theta) = \frac{1}{2m}\sum_{j=1}^{m}{\parallel \mathcal{F}((
 ## Green channel
 In order to work with the Wiener filter we had to reduce images to grayscale. The approach that we followed was simply to extract the green channel, without taking into account possible contributions of the others.
 
+# Dataset [@shullani2017vision]
+
+The dataset used for training the model and evaluating its performance is the VISION dataset, provided by Università degli Studi di Firenze.
+
+## Training (Train + Validation)
+
+For training and validation we used the first three sets of camera models images (i.e. D01, D02, D03) and we split them with a proportion of 70-30 respectively.
+
+## Test
+
+Instead, for the testing phase with the PRNU we picked the next three sets of camera models images (D04, D05, D06). This was done in order to avoid biased results.
+
 # Training
 
-<!--TODO... talk about training resources, time, number of epochs, possibility to restart the training, and maybe also the number of experiments performed-->
+We trained two different models
 
-# Dataset
+* one using the Wiener approach described previously
+* the other is the original FFDNet but with $\sigma \in [0, 5]$
+
+Generally speaking, we used the following setup for both models
+
+| **Parameter**     |   |   | **Value** |
+|:------------------|:-:|:-:|----------:|
+| N. epochs         |   |   | 250       |
+| Total time (HH)   |   |   | 44        |
+| Batch size        |   |   | 64        |
+| Patch size (WxH)  |   |   | 100       |
+| GPU (GB)          |   |   | 3         |
+| Patience (epochs) |   |   | 40        |
+
+# Resume training
+
+In order to deal with the possibility of stopping the training halfway (or with the occourrence of some unfortunate event), we integrated in the original checkpoint system the new information for the modified net.
+
+In particular:
+
+* total/elapsed epochs
+* net weights
+* learning rate and weights the optimizer
+* patience for the scheduler
+* current best loss
+* all the initial paramters (e.g. batch size, orthogonalization, ...)
 
 # PRNU Extraction [@10.2352/ISSN.2470-1173.2016.8.MWSF-086]
 
@@ -111,10 +147,8 @@ In order to evaluate the results obtained from the training of FFDNet, we
 
 This process was possible by using the prnu-python code [@luca_bondi_2019_2554965] from Politecnico di Milano.
 
-<!--TODO... maybe an image of the ROC curve would be good (maybe with fill function)-->
-
-# ROC
-![ ](imgs/roc.pdf){width=50%}
+# PRNU Extraction - Metrics
+![Evaluation of PRNU accuracy by using ROC curve](imgs/roc.pdf){width=60%}
 
 # PRNU Extraction - Changes
 
@@ -122,109 +156,42 @@ The original code worked only with a specific noise extraction procedure based o
 
 # Results
 
+\definecolor{darkgreen}{RGB}{66, 207, 68}
+
 | **Technique** | **Sigma** | **Cut Dim** | **CC** | **PCE** | **Time** |
 |:--------------|:---------:|:-----------:|:------:|:-------:|:--------:|
-| Wavelet       | 5         | 512 x 512   | 0.97   | 0.96    | 04m 49s  |
-| Neural Wiener | Adaptive  | 512 x 512   | 0.96   | 0.95    | 05m 20s  |
-| Neural Wiener | Adaptive  | 256 x 256   | 0.94   | 0.83    | 03m 18s  |
-| Neural Wiener | Adaptive  | 1024 x 1024 | 0.98   | 0.96    | 15m 18s  |
-| Neural Wiener | 5         | 512 x 512   | 0.95   | 0.92    | 05m 12s  |
-| Neural 0-5    | Adaptive  | 512 x 512   | 0.93   | 0.92    | 05m 14s  |
-| Neural 0-5    | 5         | 512 x 512   | 0.95   | 0.97    | 05m 17s  |
-| FFDNet        | Adaptive  | 512 x 512   | 0.96   | 0.94    | 05m 03s  |
-| FFDNet        | 5         | 512 x 512   | 0.96   | 0.96    | 04m 57s  |
+| \textcolor{gray}{Wavelet}     | \textcolor{gray}{5}         | \textcolor{gray}{512 x 512}   | \textcolor{gray}{0.97}   | \textcolor{gray}{0.96}    | \textcolor{gray}{04m 49s}  |
+| Neural Wiener                 | Adaptive  | 256 x 256   | 0.94   | 0.83    | 03m 18s  |
+| Neural Wiener                 | Adaptive  | 512 x 512   | **0.96** | 0.95    | 05m 20s  |
+| Neural Wiener                 | Adaptive  | 1024 x 1024 | **0.98**   | 0.96    | \textcolor{red}{15m 18s}  |
+| Neural Wiener                 | 5         | 512 x 512   | 0.95   | 0.92    | 05m 12s  |
+| Neural 0-5                    | Adaptive  | 512 x 512   | 0.93   | 0.92    | 05m 14s  |
+| Neural 0-5                    | 5         | 512 x 512   | 0.95   | **0.97**    | 05m 17s  |
+| FFDNet                        | Adaptive  | 512 x 512   | 0.96   | 0.94    | 05m 03s  |
+| \textcolor{darkgreen}{FFDNet}                        | 5         | 512 x 512   | **0.96**   | **0.96**    | 04m 57s  |
 
-# How to generate it
+# Resources
 
-To generate the presentation, just execute:
+## Repositories
 
-```sh
-pandoc main.md --include-in-header=preamble.tex \
---citeproc --bibliography=bibliography.bib -t \
-beamer -o main.pdf
-```
+* [Neural PRNU extractor](https://github.com/samuelebortolotti/neural-prnu-extractor)
+* [PRNU Python (neural)](https://github.com/samuelebortolotti/prnu-python)
 
-Useful links:
+## Collaborators' Github
 
-* [Beamer variables](https://www.uv.es/wikibase/doc/cas/pandoc_manual_2.7.3.wiki?20)
-* [how to](https://github.com/alexeygumirov/pandoc-beamer-how-to)
-* [built in themes](https://mpetroff.net/files/beamer-theme-matrix/)
+* [Simone Alghisi](https://github.com/Simone-Alghisi)
+* [Samuele Bortolotti](https://github.com/samuelebortolotti)
+* [Massimo Rizzoli](https://github.com/massimo-rizzoli)
 
-# Introduction
+# Conclusions
 
-## Noise extraction
-
-1. First
-2. Second
-3. Third
-
-## PRNU
-
-Here is a bullet list
-
-* Dot
-* Dot
-* Dot
-
-Blockquote
-
-  > Blockquote
-
-# Goal
-
-**bold text**
-
-_italic_
-
-# FFDNET
-
-::: columns
-
-:::: {.column width=40%}
-
-Left column text.
-
-Another text line.
-
-::::
-
-:::: {.column width=60%}
-
-- Item 1.
-- Item 2.
-- Item 3.
-
-::::
-
-:::
-
-# Results
-
-::: columns
-
-:::: column
-
-![Lena](https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png){height=50%}
-
-::::
-
-:::: column
-
-| **Item** | **Option** |
-|:---------|:----------:|
-| Item 1   | Option 1   |
-| Item 2   | Option 2   |
-
-::::
-
-:::
+\begin{center}
+  \LARGE{Thanks for your attention!}
+\end{center}
 
 # Appendix
 
 ## Appendix content
 The appendix contains the topics we are not able to discuss during the oral examination
-
-# Images
-![Baboon](https://www.researchgate.net/profile/Andreas-Kleefeld/publication/280083777/figure/fig2/AS:613964962619402@1523392062416/Color-image-baboon-and-its-gray-valued-representation-used-as-transparency.png){ width=50% }
 
 # References {.allowframebreaks}
