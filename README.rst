@@ -9,7 +9,7 @@ ABOUT
 
 Original author
 ^^^^^^^^^^^^^^^
-   
+
 The original FFDNET implementation was provided by
 
 
@@ -132,7 +132,7 @@ Open the documentation
 
 In order to train the provided model, it is necessary first to preprare the data.
 
-To this purpose, a set of commands has been created. It must be specified however, 
+To this purpose, a set of commands has been created. It must be specified however,
 that such commands work while considering the sytax of the VISION dataset.
 
 This code does not include image datasets, however the following may be obtained from:
@@ -150,7 +150,7 @@ You can learn more about how to perform this operation by executing
    python -m ffdnet prepare_vision --help
 
 Generally, any dataset with a similar structure (no subfolders and images with experiment_name
-``<camera_model_number>_<I|V>_<resource_type>_<resource_number>.jpg``) can be 
+``<camera_model_number>_<I|V>_<resource_type>_<resource_number>.jpg``) can be
 splitted by executing the following
 
 .. code-block:: shell
@@ -169,7 +169,7 @@ Prepare the patches
 ~~~~~~~~~~~~~~~~~~~
 
 At this point, you will need to prepare the dataset composed of patches by executing
-*prepare_patches.py* indicating the paths to the directories containing the 
+*prepare_patches.py* indicating the paths to the directories containing the
 training and validation datasets by passing *--trainset_dir* and
 *--valset_dir*\ , respectively.
 
@@ -181,7 +181,7 @@ You can learn more about how to perform this operation by executing
 
 **EXAMPLE**
 
-To prepare a dataset of patches 44x44 with stride 20, you can execute 
+To prepare a dataset of patches 44x44 with stride 20, you can execute
 
 .. code-block:: shell
 
@@ -203,7 +203,7 @@ To prepare a dataset of patches 44x44 with stride 20, you can execute
 Train a model
 ~~~~~~~~~~~~~
 
-A model can be trained after having built the training and validation databases 
+A model can be trained after having built the training and validation databases
 (i.e. *train_rgb.h5* and *val_rgb.h5* for color denoising, and *train_gray.h5*
 and *val_gray.h5* for grayscale denoising).
 Only training on GPU is supported.
@@ -278,7 +278,7 @@ Or just change the flags value within the Makefile and run
 
 In order to evaluate the model according to PRNU, it is necessary first to preprare the data.
 
-To this purpose, a set of commands has been created. It must be specified however, 
+To this purpose, a set of commands has been created. It must be specified however,
 that such commands work while considering the sytax of the VISION dataset.
 
 This code does not include image datasets, however the following may be obtained from:
@@ -300,7 +300,7 @@ In particular, it is required a dataset structure as it follows
        ├── D04_I_0001.jpg
       ...
        └── D06_I_0132.jpg
-     
+
 
 You can learn more about how to perform this operation by executing
 
@@ -309,7 +309,7 @@ You can learn more about how to perform this operation by executing
    python -m ffdnet prepare_prnu --help
 
 Generally, any dataset with a similar structure (no subfolders and images with experiment_name
-``<camera_model_number>_<I|V>_<flat|nat>_<resource_number>.jpg``) can be 
+``<camera_model_number>_<I|V>_<flat|nat>_<resource_number>.jpg``) can be
 splitted by executing the following
 
 .. code-block:: shell
@@ -324,6 +324,28 @@ splitted by executing the following
 
 6. PRNU evaluation
 ^^^^^^^^^^^^^^^^^^
+
+To evaluate a model according to the PRNU, a set of commands with various options was created.
+You can learn more about how to perform this operation by executing
+
+.. code-block:: shell
+
+   python -m ffdnet prnu --help
+
+
+The evaluation uses dataset generated as described in the previous section to evaluate a specific model.
+
+.. code-block:: shell
+
+   python -m ffdnet prnu \
+     PREPARED_DATASET_DIR \
+     models/WEIGHTS
+
+**NOTES**
+* Use ``--sigma`` option to specify a set noise value for the dataset (if not specified this is calculated for every image)
+* Use ``--gray`` option if using a gray dataset
+* Use ``--cut_dim`` option to specify the size of the cut of the images used for the estimation of the PRNU
+
 
 ABOUT THIS FILE
 ===============
