@@ -62,6 +62,7 @@ Train a model to extract the PRNU noise for device identification.
 
 :::: column
 
+<!--TODO... it would be a better idea to add labels and possibly change the colors-->
 ![ ](imgs/learning_rate.pdf)
 
 ::::
@@ -86,18 +87,35 @@ To handle different training sessions, we have created an argparser to specify s
 # Residual FFDNet - Changes [Cont...]
 
 ## Wiener as groundtruth
-As suggested by Prof. De Natale, we trained FFDNet by using the Wiener filter to produce groundtruth images (denoised). The generated images are used for computing the loss of the net
+As suggested by Prof. De Natale, we trained FFDNet by using the Wiener filter to produce groundtruth noise. The extracted noise is used to compute the loss of the residual net
 
 $$\mathcal{L}_{res}(\theta) = \frac{1}{2m}\sum_{j=1}^{m}{\parallel \mathcal{F}((\tilde{\mathrm{I}}_j, \mathrm{M}_j); \theta) - \mathrm{N}_j \parallel^2}$$
 
 ## Green channel
 In order to work with the Wiener filter we had to reduce images to grayscale. The approach that we followed was simply to extract the green channel, without taking into account possible contributions of the others.
 
-# PRNU Extraction
+# Training
+
+<!--TODO... talk about training resources, time, number of epochs, possibility to restart the training, and maybe also the number of experiments performed-->
+
+# Dataset
+
+# PRNU Extraction [@10.2352/ISSN.2470-1173.2016.8.MWSF-086]
+
+In order to evaluate the results obtained from the training of FFDNet, we
+
+1. considered a set of different camera models *flat* images
+2. extracted the noise using the neural implementation
+3. obtained the camera fingerprint for each model 
+4. classified a set of *nat* images using the resulting PRNU
+
+This process was possible by using the prnu-python code [@luca_bondi_2019_2554965] from Politecnico di Milano.
+
+<!--TODO... maybe an image of the ROC curve would be good (maybe with fill function)-->
 
 # PRNU Extraction - Changes
 
-# Training
+The original code worked only with a specific noise extraction procedure based on Wavelet denoising. For our purposes, we had to change the process in order to plug in our trained model. Furthermore, we also created a packaged installation for pip and added it in the program requirements.
 
 # Results
 
