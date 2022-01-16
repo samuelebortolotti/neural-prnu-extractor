@@ -13,9 +13,9 @@ author:
 - Rizzoli Massimo
 date:
 - \today
-lang: 
+lang:
 - en-US
-section-titles: 
+section-titles:
 - false
 theme:
 - Copenhagen
@@ -25,7 +25,7 @@ navigation:
 - horizontal
 logo:
 - unitn.pdf
-fontsize: 
+fontsize:
 - 10mm
 bibliography: bibliography.bib
 link-citations: true
@@ -106,12 +106,15 @@ In order to evaluate the results obtained from the training of FFDNet, we
 
 1. considered a set of different camera models *flat* images
 2. extracted the noise using the neural implementation
-3. obtained the camera fingerprint for each model 
+3. obtained the camera fingerprint for each model
 4. classified a set of *nat* images using the resulting PRNU
 
 This process was possible by using the prnu-python code [@luca_bondi_2019_2554965] from Politecnico di Milano.
 
 <!--TODO... maybe an image of the ROC curve would be good (maybe with fill function)-->
+
+# ROC
+![ ](imgs/roc.pdf){width=50%}
 
 # PRNU Extraction - Changes
 
@@ -136,7 +139,7 @@ The original code worked only with a specific noise extraction procedure based o
 To generate the presentation, just execute:
 
 ```sh
-pandoc main.md --include-in-header=preamble.tex \ 
+pandoc main.md --include-in-header=preamble.tex \
 --citeproc --bibliography=bibliography.bib -t \
 beamer -o main.pdf
 ```
