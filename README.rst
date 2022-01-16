@@ -342,6 +342,7 @@ The evaluation uses dataset generated as described in the previous section to ev
      models/WEIGHTS
 
 **NOTES**
+
 * Use ``--sigma`` option to specify a set noise value for the dataset (if not specified this is calculated for every image)
 * Use ``--gray`` option if using a gray dataset
 * Use ``--cut_dim`` option to specify the size of the cut of the images used for the estimation of the PRNU
