@@ -127,7 +127,113 @@ Open the documentation
 
    make open-doc
 
-2. Testing
+2. Data preparation
+^^^^^^^^^^^^^^^^^^^
+
+In order to train the provided model, it is necessary first to preprare the data.
+
+To this purpose, a set of commands has been created. It must be specified however, 
+that such commands work while considering the sytax of the VISION dataset.
+
+This code does not include image datasets, however the following may be obtained from:
+`VISION Dataset <https://lesc.dinfo.unifi.it/VISION/>`_
+
+Split into train and validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+First of all, you will need to split the original dataset into training and validation.
+
+You can learn more about how to perform this operation by executing
+
+.. code-block:: shell
+
+   python -m ffdnet prepare_vision --help
+
+Generally, any dataset with a similar structure (no subfolders and images with experiment_name
+``<camera_model_number>_<I|V>_<resource_type>_<resource_number>.jpg``) can be 
+splitted by executing the following
+
+.. code-block:: shell
+
+   python -m ffdnet prepare_vision \
+     SOURCE_DIR \
+     DESTINATION_DIR \
+     --train_frac 0.7
+
+**NOTES**
+
+* Use ``-m`` option to move file instead of copying them
+* ``--train_frac`` is used to specify the proportion of elements in training/validation
+
+Prepare the patches
+~~~~~~~~~~~~~~~~~~~
+
+At this point, you will need to prepare the dataset composed of patches by executing
+*prepare_patches.py* indicating the paths to the directories containing the 
+training and validation datasets by passing *--trainset_dir* and
+*--valset_dir*\ , respectively.
+
+You can learn more about how to perform this operation by executing
+
+.. code-block:: shell
+
+   python -m ffdnet prepare_patches --help
+
+**EXAMPLE**
+
+To prepare a dataset of patches 44x44 with stride 20, you can execute 
+
+.. code-block:: shell
+
+   python -m ffdnet prepare_patches \
+     SOURCE_DIR \
+     DESTINATION_DIR \
+     --patch_size 44 \
+     --stride 20
+
+**NOTES**
+
+* To prepare a grayscale dataset: ``python prepare_patches.py --gray``
+* *--max_number_patches* can be used to set the maximum number of patches
+  contained in the database
+
+3. Training
+^^^^^^^^^^^
+
+Train a model
+~~~~~~~~~~~~~
+
+A model can be trained after having built the training and validation databases 
+(i.e. *train_rgb.h5* and *val_rgb.h5* for color denoising, and *train_gray.h5*
+and *val_gray.h5* for grayscale denoising).
+Only training on GPU is supported.
+
+.. code-block:: shell
+
+   python -m ffdnet train --help
+
+**EXAMPLE**
+
+.. code-block:: shell
+
+   python -m ffdnet train \
+     --batch_size 128 \
+     --val_batch_size 128 \
+     --epochs 80 \
+     --filter wiener \
+     --experiment_name en \
+     --gray
+
+**NOTES**
+
+* The training process can be monitored with TensorBoard as logs get saved
+  in the *experiments/experiment_name* folder
+* By default, noise added at validation is set to 25 (\ *--val_noiseL* flag)
+* A previous training can be resumed passing the *--resume_training* flag
+* It is possible to specify a different dataset location for training (validation) with ``--traindbf`` (``--valdbf``)
+* Resource can be limited by users (when using torch 1.10.0) with the option ``--gpu_fraction``
+
+4. Testing
 ^^^^^^^^^^
 
 You can learn more about the test function by calling the help of the test subparser
@@ -142,21 +248,19 @@ found under the *models* folder you can execute
 .. code-block:: shell
 
    python -m ffdnet test \
-     --input input.png \
-     --weight_path weigths/wiener.pth \
-     --output images \
-     --gray
+     INPUT_IMG1 INPUT_IMG2 ... INPUT_IMGK \
+     models/WEIGHTS \
+     DST_FOLDER
 
 To run the algorithm on CPU instead of GPU:
 
 .. code-block:: shell
 
    python -m ffdnet test \
-     --input input.png \
-     --weight_path weigths/wiener.pth \
-     --no_gpu \
-     --output images \
-     --gray
+     INPUT_IMG1 INPUT_IMG2 ... INPUT_IMGK \
+     models/WEIGHTS \
+     DST_FOLDER \
+     --device cpu
 
 Or just change the flags value within the Makefile and run
 
@@ -166,53 +270,60 @@ Or just change the flags value within the Makefile and run
 
 **NOTES**
 
-* Models have been trained for values of noise in [0, 75]
+* Models have been trained for values of noise in [0, 5]
 * Models have been trained with the Wiener filter as denoising method
 
-3. Training
-^^^^^^^^^^^
+5. PRNU data preparation
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-Prepare the databases
-~~~~~~~~~~~~~~~~~~~~~
+In order to evaluate the model according to PRNU, it is necessary first to preprare the data.
 
-First, you will need to prepare the dataset composed of patches by executing
-*prepare_patches.py* indicating the paths to the directories containing the 
-training and validation datasets by passing *--trainset_dir* and
-*--valset_dir*\ , respectively.
+To this purpose, a set of commands has been created. It must be specified however, 
+that such commands work while considering the sytax of the VISION dataset.
 
 This code does not include image datasets, however the following may be obtained from:
-`Vision Dataset <https://lesc.dinfo.unifi.it/VISION/>`_
+`VISION Dataset <https://lesc.dinfo.unifi.it/VISION/>`_
 
-**NOTES**
+Split into flat and nat
+~~~~~~~~~~~~~~~~~~~~~~~
 
-* To prepare a grayscale dataset: ``python prepare_patches.py --gray``
-* *--max_number_patches* can be used to set the maximum number of patches
-  contained in the database
+To this purpose, you will need to split the original dataset into flat and nat images.
+In particular, it is required a dataset structure as it follows
 
-Train a model
-~~~~~~~~~~~~~
+.. code-block:: shell
+   .
+   ├── flat
+   │   ├── D04_I_0001.jpg
+   .....
+   │   └── D06_I_0149.jpg
+   └── nat
+       ├── D04_I_0001.jpg
+      ...
+       └── D06_I_0132.jpg
+     
 
-A model can be trained after having built the training and validation databases 
-(i.e. *train_rgb.h5* and *val_rgb.h5* for color denoising, and *train_gray.h5*
-and *val_gray.h5* for grayscale denoising).
-Only training on GPU is supported.
+You can learn more about how to perform this operation by executing
 
 .. code-block:: shell
 
-   python -m ffdnet train \
-     --batch_size 128 \
-     --val_batch_size 128 \
-     --epochs 80 \
-     --wiener \
-     --experiment_name en \
-     --gray
+   python -m ffdnet prepare_prnu --help
+
+Generally, any dataset with a similar structure (no subfolders and images with experiment_name
+``<camera_model_number>_<I|V>_<flat|nat>_<resource_number>.jpg``) can be 
+splitted by executing the following
+
+.. code-block:: shell
+
+   python -m ffdnet prepare_prnu \
+     SOURCE_DIR
 
 **NOTES**
 
-* The training process can be monitored with TensorBoard as logs get saved
-  in the *experiments/experiment_name* folder
-* By default, noise added at validation is set to 25 (\ *--val_noiseL* flag)
-* A previous training can be resumed passing the *--resume_training* flag
+* Use ``-m`` option to move file instead of copying them
+* Use ``--dst`` option to specify a different destination folder
+
+6. PRNU evaluation
+^^^^^^^^^^^^^^^^^^
 
 ABOUT THIS FILE
 ===============
