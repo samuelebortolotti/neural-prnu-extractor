@@ -36,11 +36,11 @@ nocite: |
 # Introduction
 
 ## Noise extraction
-Noise reduction is the process of removing noise from a signal. Images taken with both digital cameras and conventional film cameras will pick up noise from a variety of sources and can be (partially) removed for practical purposes such as computer vision [@enwiki:1065098521]
+Noise reduction is the process of removing noise from a signal. Images, taken with both digital cameras and conventional film cameras, will pick up noise from a variety of sources, which can be (partially) removed for practical purposes such as computer vision [@enwiki:1065098521]
 
 ## PRNU
-Photo response non-uniformity, pixel response non-uniformity, or PRNU, is a form of fixed-pattern noise related to digital image sensors, as used in cameras and optical instruments [@enwiki:1048256617].
-In forensics PRNU is extracted from a set of images taken by the same camera device, with the purpose of identifying which device generated an image.
+Photo response non-uniformity, pixel response non-uniformity, or PRNU is a form of fixed-pattern noise related to digital image sensors, as used in cameras and optical instruments [@enwiki:1048256617].
+In forensics, PRNU is extracted from a set of images taken by the same camera device with the purpose of identifying which device generated an image.
 
 # Objective
 Train a model to extract the PRNU noise for device identification.
@@ -49,14 +49,14 @@ Train a model to extract the PRNU noise for device identification.
 
 # Residual FFDNet [@ipol.2019.231]
 
-![FFDNet layers](./imgs/ffdnet.png)
+![FFDNet architecture](./imgs/ffdnet.png)
 
-## Reasons
-* able to remove spatially variant noise, specifying a non-uniform noise level map
-* works with low noise levels ($\sigma \in [0, 75]$)
-* uses state of the art CNN structures as residual connections, which allows for more stable PSNR during training
+## Strenght points
+* removes spatially variant noise, specifying a non-uniform noise level map;
+* works with low noise levels ($\sigma \in [0, 75]$);
+* uses state of the art CNN structures as residual connections, which allows for more stable PSNR during training.
 
-# Residual FFDNet - Changes
+# Residual FFDNet - Our contribution
 
 ::: {.columns align=center}
 
@@ -69,33 +69,33 @@ Train a model to extract the PRNU noise for device identification.
 :::: column
 
 ## ReduceLROnPlateau
-Instead of manually reducing the learning rate, we introduced this function in order to decrease it automatically after a *patience* threshold.
+Instead of reducing manually the learning rate, we introduced this function in order to decrease it automatically after a *patience* threshold.
 
 ::::
 
 :::
 
-# Residual FFDNet - Changes [Cont...]
+# Residual FFDNet - Our contribution
 
 ## Resource usage
-To work in a limited environment, we introduced a stopping criterion if the requested resources exceeded a user-fixed limit (different from the machine one).
+In order to work in a limited environment, we introduced a stopping criterion if the requested resources exceeded a user-fixed limit (different from the machine one).
 
 ## Different experiments
-To handle different training sessions, we have created an argparser to specify several parameters (e.g. experiment name, datasets, epochs, gpu fraction, ...)
+So as to handle different training sessions, we have created an argument parser to specify several parameters (e.g. experiment name, datasets, epochs, gpu fraction, ...)
 
-# Residual FFDNet - Changes [Cont...]
+# Residual FFDNet - Our contribution
 
 ## Wiener as groundtruth
-As suggested by Prof. De Natale, we trained FFDNet by using the Wiener filter to produce groundtruth noise. The extracted noise is used to compute the loss of the residual net
+As suggested by Prof. De Natale, we trained FFDNet by using the Wiener filter to produce ground-truth noise. The extracted noise is used to compute the loss of the residual net
 
 $$\mathcal{L}_{res}(\theta) = \frac{1}{2m}\sum_{j=1}^{m}{\parallel \mathcal{F}((\tilde{\mathrm{I}}_j, \mathrm{M}_j); \theta) - \mathrm{N}_j \parallel^2}$$
 
 ## Green channel
-In order to work with the Wiener filter we had to reduce images to grayscale. The approach that we followed was simply to extract the green channel, without taking into account possible contributions of the others.
+In order to work with the Wiener filter, we had to reduce images to grayscale. The approach that we followed was simply to extract the green channel, without taking into account possible contributions of the others.
 
 # Dataset [@shullani2017vision]
 
-The dataset used for training the model and evaluating its performance is the VISION dataset, provided by Università degli Studi di Firenze.
+The dataset used to train the model and evaluate its performance is the VISION dataset, provided by Università degli Studi di Firenze.
 
 ## Training (Train + Validation)
 
@@ -109,8 +109,8 @@ Instead, for the testing phase with the PRNU we picked the next three sets of ca
 
 We trained two different models
 
-* one using the Wiener approach described previously
-* the other is the original FFDNet but with $\sigma \in [0, 5]$
+* one using the Wiener approach described previously;
+* the other is the original FFDNet but with $\sigma \in [0, 5]$.
 
 Generally speaking, we used the following setup for both models
 
@@ -125,16 +125,16 @@ Generally speaking, we used the following setup for both models
 
 # Resume training
 
-In order to deal with the possibility of stopping the training halfway (or with the occourrence of some unfortunate event), we integrated in the original checkpoint system the new information for the modified net.
+In order to deal with the possibility of stopping the training halfway (or with the occurrence of some unfortunate event), we integrated into the original checkpoint system the new information for the modified neural network.
 
 In particular:
 
 * total/elapsed epochs
-* net weights
+* network weights
 * learning rate and weights the optimizer
 * patience for the scheduler
 * current best loss
-* all the initial paramters (e.g. batch size, orthogonalization, ...)
+* all the initial parameters (e.g. batch size, orthogonalization, ...)
 
 # PRNU Extraction [@10.2352/ISSN.2470-1173.2016.8.MWSF-086]
 
@@ -150,7 +150,7 @@ This process was possible by using the prnu-python code [@luca_bondi_2019_255496
 # PRNU Extraction - Metrics
 ![Evaluation of PRNU accuracy by using ROC curve](imgs/roc.pdf){width=60%}
 
-# PRNU Extraction - Changes
+# PRNU Extraction - Our contribution
 
 The original code worked only with a specific noise extraction procedure based on Wavelet denoising. For our purposes, we had to change the process in order to plug in our trained model. Furthermore, we also created a packaged installation for pip and added it in the program requirements.
 
