@@ -24,7 +24,7 @@ colortheme:
 navigation:
 - horizontal
 logo:
-- unitn.pdf
+- imgs/unitn.pdf
 fontsize:
 - 10mm
 bibliography: bibliography.bib
@@ -36,11 +36,10 @@ nocite: |
 # Introduction
 
 ## Noise extraction
-Noise reduction is the process of removing noise from a signal. Images, taken with both digital cameras and conventional film cameras, will pick up noise from a variety of sources, which can be (partially) removed for practical purposes such as computer vision [@enwiki:1065098521]
+Noise reduction is the process of removing noise from a signal for practical purposes such as computer vision [@enwiki:1065098521]
 
 ## PRNU
-Photo response non-uniformity, pixel response non-uniformity, or PRNU is a form of fixed-pattern noise related to digital image sensors, as used in cameras and optical instruments [@enwiki:1048256617].
-In forensics, PRNU is extracted from a set of images taken by the same camera device with the purpose of identifying which device generated an image.
+Photo response non-uniformity is a form of fixed-pattern noise related to digital image sensors, as used in cameras and optical instruments [@enwiki:1048256617].
 
 # Objective
 Train a model to extract the PRNU noise for device identification.
@@ -54,7 +53,7 @@ Train a model to extract the PRNU noise for device identification.
 ## Strenght points
 * removes spatially variant noise, specifying a non-uniform noise level map;
 * works with low noise levels ($\sigma \in [0, 75]$);
-* uses state of the art CNN structures as residual connections, which allows for more stable PSNR during training.
+* uses state of the art CNN structures as residual connections.
 
 # Residual FFDNet - Our contribution
 
@@ -78,7 +77,7 @@ Instead of reducing manually the learning rate, we introduced this function in o
 # Residual FFDNet - Our contribution
 
 ## Resource usage
-In order to work in a limited environment, we introduced a stopping criterion if the requested resources exceeded a user-fixed limit (different from the machine one).
+We introduced a stopping criterion if the requested resources exceed a user-fixed limit (different from the machine one).
 
 ## Different experiments
 So as to handle different training sessions, we have created an argument parser to specify several parameters (e.g. experiment name, datasets, epochs, gpu fraction, ...)
@@ -86,12 +85,12 @@ So as to handle different training sessions, we have created an argument parser 
 # Residual FFDNet - Our contribution
 
 ## Wiener as groundtruth
-As suggested by Prof. De Natale, we trained FFDNet by using the Wiener filter to produce ground-truth noise. The extracted noise is used to compute the loss of the residual net
+We trained FFDNet by using the Wiener filter to produce ground-truth noise. The extracted noise is used to compute the loss of the residual net
 
 $$\mathcal{L}_{res}(\theta) = \frac{1}{2m}\sum_{j=1}^{m}{\parallel \mathcal{F}((\tilde{\mathrm{I}}_j, \mathrm{M}_j); \theta) - \mathrm{N}_j \parallel^2}$$
 
 ## Green channel
-In order to work with the Wiener filter, we had to reduce images to grayscale. The approach that we followed was simply to extract the green channel, without taking into account possible contributions of the others.
+In order to work with the Wiener filter, we extracted the green channel, without taking into account possible contributions of the others.
 
 # Dataset [@shullani2017vision]
 
@@ -99,11 +98,11 @@ The dataset used to train the model and evaluate its performance is the VISION d
 
 ## Training (Train + Validation)
 
-For training and validation we used the first three sets of camera models images (i.e. D01, D02, D03) and we split them with a proportion of 70-30 respectively.
+For training and validation we used the first three sets of camera models images (i.e. D01, D02, D03).
 
 ## Test
 
-Instead, for the testing phase with the PRNU we picked the next three sets of camera models images (D04, D05, D06). This was done in order to avoid biased results.
+Instead, for the testing phase with the PRNU we picked the next three sets of camera models images (D04, D05, D06).
 
 # Training
 
@@ -125,7 +124,7 @@ Generally speaking, we used the following setup for both models
 
 # Resume training
 
-In order to deal with the possibility of stopping the training halfway (or with the occurrence of some unfortunate event), we integrated into the original checkpoint system the new information for the modified neural network.
+We integrated into the original checkpoint system the new information for the modified neural network.
 
 In particular:
 
@@ -134,25 +133,23 @@ In particular:
 * learning rate and weights the optimizer
 * patience for the scheduler
 * current best loss
-* all the initial parameters (e.g. batch size, orthogonalization, ...)
+* all the initial parameters
 
 # PRNU Extraction [@10.2352/ISSN.2470-1173.2016.8.MWSF-086]
 
-In order to evaluate the results obtained from the training of FFDNet, we
+To evaluate the results obtained from the training of FFDNet, we
 
 1. considered a set of different camera models *flat* images
 2. extracted the noise using the neural implementation
-3. obtained the camera fingerprint for each model
+3. obtained the camera fingerprint for each model [@luca_bondi_2019_2554965]
 4. classified a set of *nat* images using the resulting PRNU
 
-This process was possible by using the prnu-python code [@luca_bondi_2019_2554965] from Politecnico di Milano.
+Furthermore, we also created a packaged installation for \texttt{pip} and added it in the program requirements.
+
+
 
 # PRNU Extraction - Metrics
 ![Evaluation of PRNU accuracy by using ROC curve](imgs/roc.pdf){width=60%}
-
-# PRNU Extraction - Our contribution
-
-The original code worked only with a specific noise extraction procedure based on Wavelet denoising. For our purposes, we had to change the process in order to plug in our trained model. Furthermore, we also created a packaged installation for pip and added it in the program requirements.
 
 # Results
 
@@ -189,9 +186,9 @@ The original code worked only with a specific noise extraction procedure based o
   \LARGE{Thanks for your attention!}
 \end{center}
 
-# Appendix
-
-## Appendix content
-The appendix contains the topics we are not able to discuss during the oral examination
+<!--# Appendix-->
+<!---->
+<!--## Appendix content-->
+<!--The appendix contains the topics we are not able to discuss during the oral examination-->
 
 # References {.allowframebreaks}
