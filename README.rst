@@ -48,6 +48,7 @@ Schema
 ------
 
 .. image:: presentation/imgs/prnu_extraction_pipeline.pdf
+  :alt: https://github.com/samuelebortolotti/neural-prnu-extractor/blob/master/presentation/imgs/prnu_extraction_pipeline.pdf
 
 USER GUIDE
 ==========
@@ -292,14 +293,17 @@ Ouput example
 Original image
 
 .. image:: presentation/imgs/original.jpg
+   :alt: https://github.com/samuelebortolotti/neural-prnu-extractor/blob/master/presentation/imgs/original.pdf
 
 Histogram equalized predicted noise
 
 .. image:: presentation/imgs/histogram_equalized_prediction_noise.jpg
+   :alt: https://github.com/samuelebortolotti/neural-prnu-extractor/blob/master/presentation/imgs/histogram_equalized_prediction_noise.jpg
 
 Denoised image
 
 .. image:: presentation/imgs/prediction_denoised.jpg
+   :alt: https://github.com/samuelebortolotti/neural-prnu-extractor/blob/master/presentation/imgs/prediction_denoised.jpg
 
 **NOTES**
 
@@ -380,6 +384,7 @@ Output example
 Estimated PRNU
 
 .. image:: presentation/imgs/prnu.jpg
+   :alt: https://github.com/samuelebortolotti/neural-prnu-extractor/blob/master/presentation/imgs/prnu.jpg
 
 Statistics
 
@@ -438,4 +443,4 @@ Copying and distribution of this file, with or without modification, are permitt
 ACKNOWLEDGEMENTS
 ================
 
-Some of the code is based on code by Yiqi Yan yanyiqinwpu@gmail.cot
+Some of the code is based on code by Yiqi Yan yanyiqinwpu@gmail.com
