@@ -30,7 +30,7 @@ OVERVIEW
 Introduction
 ^^^^^^^^^^^^
 
-This source code provides a modified version of the "FFDNet image denoising, as in Zhang, Kai, Wangmeng Zuo, and Lei Zhang. ``FFDNet: Toward a fast and flexible solution for CNN based image denoising.``
+This source code provides a modified version of the "FFDNet image denoising, as in Zhang, Kai, Wangmeng Zuo, and Lei Zhang. ``FFDNet: Toward a fast and flexible solution for CNN based image denoising.``"
 `FFDNet paper <https://arxiv.org/abs/1710.04026>`_. 
 
 This version, unlike the original, concentrates on detecting the cameras' `PRNU <https://en.wikipedia.org/wiki/Photo_response_non-uniformity>`_.
@@ -116,6 +116,10 @@ Install the requirements listed in ``requirements.txt``
 The documentation is built using `Sphinx v4.3.0 <https://www.sphinx-doc.org/en/master/>`_.
 
 If you want to build the documentation, you need to enter the project folder first:
+
+.. code-block:: shell
+
+   cd neural-prnu-extractor
 
 Install the development dependencies [``requirements.dev.txt``]
 
@@ -362,7 +366,6 @@ You can learn more about how to perform this operation by executing
 
    python -m ffdnet prnu --help
 
-
 The evaluation uses a dataset, generated as described in the previous section, to evaluate a specific model.
 
 .. code-block:: shell
@@ -407,6 +410,16 @@ Statistics
          ])
       }
    }
+
+Where:
+
+* ``cc`` is the `cross-correlation <https://en.wikipedia.org/wiki/Cross-correlation/>`_ 
+* ``pce`` is the `peak to correlation energy <https://www.researchgate.net/publication/282869085_On_the_practical_aspects_of_applying_the_PRNU_approach_to_device_identification_tasks>`_
+* ``auc`` is the `area under the curve <https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve>`_
+* ``eer`` is the `equal error rate <https://jimmy-shen.medium.com/roc-receiver-operating-characteristic-and-eer-equal-error-rate-ac5a576fae38>`_ 
+* ``fpr`` is the `false positive rate <https://en.wikipedia.org/wiki/False_positive_rate>`_ 
+* ``th`` are the `thresholds <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html>`_ 
+
 
 **NOTES**
 

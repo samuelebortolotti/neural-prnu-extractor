@@ -100,8 +100,7 @@ def test_ffdnet(args):
 
   * [name]_original_prediction_noise.jpg: image depicting the noise detected by the FFDNet
 
-  * [name]_equalized_wiener_noise.jpg: image depicting the noise detected by the wiener filter after
-  applying histogram equalization
+  * [name]_equalized_wiener_noise.jpg: image depicting the noise detected by the wiener filter after applying histogram equalization
   
   * [name]_equalized_prediction_noise.jpg: image depicting the noise detected by the FFDNet
 
