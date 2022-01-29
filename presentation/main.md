@@ -77,7 +77,7 @@ Instead of reducing manually the learning rate, we introduced this function in o
 # Residual FFDNet - Our contribution
 
 ## Resource usage
-We introduced a stopping criterion if the requested resources exceed a user-fixed limit (different from the machine one).
+We introduced a stopping criterion if the requested resources exceed a user-fixed for the amount of GPU memory. Once exceeded, the procedure stops.
 
 ## Different experiments
 So as to handle different training sessions, we have created an argument parser to specify several parameters (e.g. experiment name, datasets, epochs, gpu fraction, ...)
@@ -90,7 +90,7 @@ We trained FFDNet by using the Wiener filter to produce ground-truth noise. The 
 $$\mathcal{L}_{res}(\theta) = \frac{1}{2m}\sum_{j=1}^{m}{\parallel \mathcal{F}((\tilde{\mathrm{I}}_j, \mathrm{M}_j); \theta) - \mathrm{N}_j \parallel^2}$$
 
 ## Green channel
-In order to work with the Wiener filter, we extracted the green channel, without taking into account possible contributions of the others.
+In order to work with the Wiener filter, we have extracted the green channel, without taking into account possible contributions of the others.
 
 # Dataset [@shullani2017vision]
 
@@ -98,7 +98,7 @@ The dataset used to train the model and evaluate its performance is the VISION d
 
 ## Training (Train + Validation)
 
-For training and validation we used the first three sets of camera models images (i.e. D01, D02, D03).
+For training and validation we used the first three sets of camera models’ images (i.e. D01, D02, D03).
 
 ## Test
 
@@ -109,7 +109,7 @@ Instead, for the testing phase with the PRNU we picked the next three sets of ca
 We trained two different models
 
 * one using the Wiener approach described previously;
-* the other is the original FFDNet but with $\sigma \in [0, 5]$.
+* the other using the original approach with $\sigma \in [0, 5]$.
 
 Generally speaking, we used the following setup for both models
 
