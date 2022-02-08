@@ -130,7 +130,7 @@ In particular:
 
 * total/elapsed epochs
 * network weights
-* learning rate and weights the optimizer
+* learning rate and weights for the optimizer
 * patience for the scheduler
 * current best loss
 * all the initial parameters
