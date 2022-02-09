@@ -251,6 +251,8 @@ Only training on GPU is supported.
 * A previous training can be resumed passing the *--resume_training* flag
 * It is possible to specify a different dataset location for training (validation) with ``--traindbf`` (``--valdbf``)
 * Resource can be limited by users (when using torch 1.10.0) with the option ``--gpu_fraction``
+* Training was performed by considering a file containing 50160 patches 100x100 with 50px of stride, while 
+  for the validation we considered a file containing 16080 patches.
 
 4. Testing
 ^^^^^^^^^^
@@ -431,6 +433,7 @@ Where:
 * Use the ``--sigma`` option to specify a set noise value for the dataset (if not specified, this is calculated for every image)
 * Use the ``--gray`` option if using a gray dataset
 * Use the ``--cut_dim`` option to specify the size of the cut of the images used for the estimation of the PRNU
+* For the fingerprints extraction, we considered a set of 3 camera models with 130 (flat) images per model
 
 
 ABOUT THIS FILE
